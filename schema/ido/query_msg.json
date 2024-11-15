@@ -1,0 +1,211 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "ido_amount"
+      ],
+      "properties": {
+        "ido_amount": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "ido_info"
+      ],
+      "properties": {
+        "ido_info": {
+          "type": "object",
+          "required": [
+            "ido_id"
+          ],
+          "properties": {
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "in_whitelist"
+      ],
+      "properties": {
+        "in_whitelist": {
+          "type": "object",
+          "required": [
+            "address",
+            "ido_id"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "ido_list_owned_by"
+      ],
+      "properties": {
+        "ido_list_owned_by": {
+          "type": "object",
+          "required": [
+            "address",
+            "limit",
+            "start"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "limit": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "start": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "purchases"
+      ],
+      "properties": {
+        "purchases": {
+          "type": "object",
+          "required": [
+            "address",
+            "ido_id",
+            "limit",
+            "start"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "limit": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "start": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "archived_purchases"
+      ],
+      "properties": {
+        "archived_purchases": {
+          "type": "object",
+          "required": [
+            "address",
+            "ido_id",
+            "limit",
+            "start"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "limit": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "start": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "user_info"
+      ],
+      "properties": {
+        "user_info": {
+          "type": "object",
+          "required": [
+            "address"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "ido_id": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}

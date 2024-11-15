@@ -1,0 +1,421 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HandleMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "change_admin"
+      ],
+      "properties": {
+        "change_admin": {
+          "type": "object",
+          "required": [
+            "admin"
+          ],
+          "properties": {
+            "admin": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "change_status"
+      ],
+      "properties": {
+        "change_status": {
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "$ref": "#/definitions/ContractStatus"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "start_ido"
+      ],
+      "properties": {
+        "start_ido": {
+          "type": "object",
+          "required": [
+            "end_time",
+            "payment",
+            "price",
+            "start_time",
+            "token_contract",
+            "token_contract_hash",
+            "tokens_per_tier",
+            "total_amount",
+            "whitelist"
+          ],
+          "properties": {
+            "end_time": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "payment": {
+              "$ref": "#/definitions/PaymentMethod"
+            },
+            "price": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "start_time": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "token_contract": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "token_contract_hash": {
+              "type": "string"
+            },
+            "tokens_per_tier": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Uint128"
+              }
+            },
+            "total_amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "whitelist": {
+              "$ref": "#/definitions/Whitelist"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "whitelist_add"
+      ],
+      "properties": {
+        "whitelist_add": {
+          "type": "object",
+          "required": [
+            "addresses",
+            "ido_id"
+          ],
+          "properties": {
+            "addresses": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/HumanAddr"
+              }
+            },
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "whitelist_remove"
+      ],
+      "properties": {
+        "whitelist_remove": {
+          "type": "object",
+          "required": [
+            "addresses",
+            "ido_id"
+          ],
+          "properties": {
+            "addresses": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/HumanAddr"
+              }
+            },
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "buy_tokens"
+      ],
+      "properties": {
+        "buy_tokens": {
+          "type": "object",
+          "required": [
+            "amount",
+            "ido_id"
+          ],
+          "properties": {
+            "amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "token": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/NftToken"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "recv_tokens"
+      ],
+      "properties": {
+        "recv_tokens": {
+          "type": "object",
+          "required": [
+            "ido_id"
+          ],
+          "properties": {
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "limit": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "purchase_indices": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0.0
+              }
+            },
+            "start": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "withdraw"
+      ],
+      "properties": {
+        "withdraw": {
+          "type": "object",
+          "required": [
+            "ido_id"
+          ],
+          "properties": {
+            "ido_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "ContractStatus": {
+      "type": "string",
+      "enum": [
+        "active",
+        "stopped"
+      ]
+    },
+    "HumanAddr": {
+      "type": "string"
+    },
+    "NftToken": {
+      "type": "object",
+      "required": [
+        "token_id",
+        "viewing_key"
+      ],
+      "properties": {
+        "token_id": {
+          "type": "string"
+        },
+        "viewing_key": {
+          "type": "string"
+        }
+      }
+    },
+    "PaymentMethod": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "native"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "token"
+          ],
+          "properties": {
+            "token": {
+              "type": "object",
+              "required": [
+                "code_hash",
+                "contract"
+              ],
+              "properties": {
+                "code_hash": {
+                  "type": "string"
+                },
+                "contract": {
+                  "$ref": "#/definitions/HumanAddr"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "Uint128": {
+      "type": "string"
+    },
+    "Whitelist": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "empty"
+          ],
+          "properties": {
+            "empty": {
+              "type": "object",
+              "properties": {
+                "with": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/HumanAddr"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "shared"
+          ],
+          "properties": {
+            "shared": {
+              "type": "object",
+              "properties": {
+                "with_blocked": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "$ref": "#/definitions/HumanAddr"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

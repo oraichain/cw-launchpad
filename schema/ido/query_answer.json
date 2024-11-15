@@ -1,0 +1,340 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryAnswer",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object",
+          "required": [
+            "admin",
+            "lock_periods",
+            "nft_contract",
+            "nft_contract_hash",
+            "tier_contract",
+            "tier_contract_hash"
+          ],
+          "properties": {
+            "admin": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "lock_periods": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "nft_contract": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "nft_contract_hash": {
+              "type": "string"
+            },
+            "tier_contract": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "tier_contract_hash": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "ido_amount"
+      ],
+      "properties": {
+        "ido_amount": {
+          "type": "object",
+          "required": [
+            "amount"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "ido_info"
+      ],
+      "properties": {
+        "ido_info": {
+          "type": "object",
+          "required": [
+            "admin",
+            "end_time",
+            "participants",
+            "payment",
+            "price",
+            "shared_whitelist",
+            "sold_amount",
+            "start_time",
+            "token_contract",
+            "token_contract_hash",
+            "total_payment",
+            "total_tokens_amount",
+            "withdrawn"
+          ],
+          "properties": {
+            "admin": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "end_time": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "participants": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "payment": {
+              "$ref": "#/definitions/PaymentMethod"
+            },
+            "price": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "shared_whitelist": {
+              "type": "boolean"
+            },
+            "sold_amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "start_time": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "token_contract": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "token_contract_hash": {
+              "type": "string"
+            },
+            "total_payment": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "total_tokens_amount": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "withdrawn": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "in_whitelist"
+      ],
+      "properties": {
+        "in_whitelist": {
+          "type": "object",
+          "required": [
+            "in_whitelist"
+          ],
+          "properties": {
+            "in_whitelist": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "ido_list_owned_by"
+      ],
+      "properties": {
+        "ido_list_owned_by": {
+          "type": "object",
+          "required": [
+            "amount",
+            "ido_ids"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "ido_ids": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint32",
+                "minimum": 0.0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "purchases"
+      ],
+      "properties": {
+        "purchases": {
+          "type": "object",
+          "required": [
+            "amount",
+            "purchases"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "purchases": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PurchaseAnswer"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "archived_purchases"
+      ],
+      "properties": {
+        "archived_purchases": {
+          "type": "object",
+          "required": [
+            "amount",
+            "purchases"
+          ],
+          "properties": {
+            "amount": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "purchases": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PurchaseAnswer"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "user_info"
+      ],
+      "properties": {
+        "user_info": {
+          "type": "object",
+          "required": [
+            "total_payment",
+            "total_tokens_bought",
+            "total_tokens_received"
+          ],
+          "properties": {
+            "total_payment": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "total_tokens_bought": {
+              "$ref": "#/definitions/Uint128"
+            },
+            "total_tokens_received": {
+              "$ref": "#/definitions/Uint128"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    },
+    "PaymentMethod": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "native"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "token"
+          ],
+          "properties": {
+            "token": {
+              "type": "object",
+              "required": [
+                "code_hash",
+                "contract"
+              ],
+              "properties": {
+                "code_hash": {
+                  "type": "string"
+                },
+                "contract": {
+                  "$ref": "#/definitions/HumanAddr"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "PurchaseAnswer": {
+      "type": "object",
+      "required": [
+        "timestamp",
+        "tokens_amount",
+        "unlock_time"
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "tokens_amount": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "unlock_time": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Uint128": {
+      "type": "string"
+    }
+  }
+}

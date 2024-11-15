@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HandleMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "change_admin"
+      ],
+      "properties": {
+        "change_admin": {
+          "type": "object",
+          "required": [
+            "admin"
+          ],
+          "properties": {
+            "admin": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "change_status"
+      ],
+      "properties": {
+        "change_status": {
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "status": {
+              "$ref": "#/definitions/ContractStatus"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "deposit"
+      ],
+      "properties": {
+        "deposit": {
+          "type": "object",
+          "properties": {
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "withdraw"
+      ],
+      "properties": {
+        "withdraw": {
+          "type": "object",
+          "properties": {
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "claim"
+      ],
+      "properties": {
+        "claim": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "recipient": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/HumanAddr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "start": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "withdraw_rewards"
+      ],
+      "properties": {
+        "withdraw_rewards": {
+          "type": "object",
+          "properties": {
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "recipient": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/HumanAddr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "redelegate"
+      ],
+      "properties": {
+        "redelegate": {
+          "type": "object",
+          "required": [
+            "validator_address"
+          ],
+          "properties": {
+            "padding": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "recipient": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/HumanAddr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "validator_address": {
+              "$ref": "#/definitions/HumanAddr"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "ContractStatus": {
+      "type": "string",
+      "enum": [
+        "active",
+        "stopped"
+      ]
+    },
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}

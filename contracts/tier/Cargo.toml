@@ -1,0 +1,21 @@
+[package]
+name = "tier"
+version = "0.1.0"
+edition = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+test-tube = []
+
+[dependencies]
+cosmwasm-std = { workspace = true, features = ["staking"] }
+cosmwasm-schema = { workspace = true }
+secret-toolkit-storage = "0.5.0"
+secret-toolkit-utils = "0.3.1"
+
+
+[dev-dependencies]
+
+rand = "0.8.5"
