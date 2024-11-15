@@ -44,16 +44,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d86b93f97252c47b41663388e6d155714a9d0c398b99f1005cbc5f978b29f445"
 
 [[package]]
-name = "bincode2"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f49f6183038e081170ebbbadee6678966c7d54728938a3e7de7f4e780770318f"
-dependencies = [
- "byteorder",
- "serde",
-]
-
-[[package]]
 name = "block-buffer"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -205,6 +195,17 @@ dependencies = [
  "rand_core 0.5.1",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "cw-storage-plus"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5ff29294ee99373e2cd5fd21786a3c0ced99a52fec2ca347d565489c61b723c"
+dependencies = [
+ "cosmwasm-std",
+ "schemars 0.8.21",
+ "serde",
 ]
 
 [[package]]
@@ -384,14 +385,14 @@ dependencies = [
 
 [[package]]
 name = "ido"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
+ "cw-storage-plus",
  "rand",
  "secret-toolkit-snip20",
  "secret-toolkit-snip721",
- "secret-toolkit-storage",
  "secret-toolkit-utils",
 ]
 
@@ -604,18 +605,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "secret-toolkit-serialization"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46dbe2e79d6f912a87895e3c83cfda65470f05f7927ab58e398d1e67fb1f4f6a"
-dependencies = [
- "bincode2",
- "schemars 0.7.6",
- "secret-cosmwasm-std",
- "serde",
-]
-
-[[package]]
 name = "secret-toolkit-snip20"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -636,18 +625,6 @@ dependencies = [
  "schemars 0.7.6",
  "secret-cosmwasm-std",
  "secret-toolkit-utils",
- "serde",
-]
-
-[[package]]
-name = "secret-toolkit-storage"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e906a01af9dded13f5f3586fc98cfb8cdbdec3e1d8e9cfa4cd0d25d44a62058"
-dependencies = [
- "secret-cosmwasm-std",
- "secret-cosmwasm-storage",
- "secret-toolkit-serialization",
  "serde",
 ]
 
@@ -855,12 +832,12 @@ dependencies = [
 
 [[package]]
 name = "tier"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
+ "cw-storage-plus",
  "rand",
- "secret-toolkit-storage",
  "secret-toolkit-utils",
 ]
 

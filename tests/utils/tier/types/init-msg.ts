@@ -1,10 +1,10 @@
 export type Uint128 = string;
-export type HumanAddr = string;
+export type Addr = string;
 
-export interface InitMsg {
+export interface InstantiateMsg {
   deposits: Uint128[];
-  owner?: HumanAddr | null;
-  validator: HumanAddr;
-  band_oracle: HumanAddr;
+  owner?: Addr | null;
+  validator: Addr;
+  band_oracle: Addr;
   band_code_hash: String;
 }

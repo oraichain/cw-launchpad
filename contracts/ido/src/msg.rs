@@ -1,4 +1,5 @@
-use cosmwasm_std::{HumanAddr, Uint128};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Addr, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -22,43 +23,32 @@ pub struct NftToken {
     pub viewing_key: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub struct InitMsg {
-    pub admin: Option<HumanAddr>,
+#[cw_serde]
+pub struct InstantiateMsg {
+    pub admin: Option<Addr>,
     pub lock_periods: Vec<u64>,
-    pub tier_contract: HumanAddr,
+    pub tier_contract: Addr,
     pub tier_contract_hash: String,
-    pub nft_contract: HumanAddr,
+    pub nft_contract: Addr,
     pub nft_contract_hash: String,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum PaymentMethod {
     Native,
-    Token {
-        contract: HumanAddr,
-        code_hash: String,
-    },
+    Token { contract: Addr, code_hash: String },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum Whitelist {
-    Empty {
-        with: Option<Vec<HumanAddr>>,
-    },
-    Shared {
-        with_blocked: Option<Vec<HumanAddr>>,
-    },
+    Empty { with: Option<Vec<Addr>> },
+    Shared { with_blocked: Option<Vec<Addr>> },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum HandleMsg {
+#[cw_serde]
+pub enum ExecuteMsg {
     ChangeAdmin {
-        admin: HumanAddr,
+        admin: Addr,
         padding: Option<String>,
     },
     ChangeStatus {
@@ -68,7 +58,7 @@ pub enum HandleMsg {
     StartIdo {
         start_time: u64,
         end_time: u64,
-        token_contract: HumanAddr,
+        token_contract: Addr,
         token_contract_hash: String,
         price: Uint128,
         soft_cap: Uint128,
@@ -79,12 +69,12 @@ pub enum HandleMsg {
         whitelist: Whitelist,
     },
     WhitelistAdd {
-        addresses: Vec<HumanAddr>,
+        addresses: Vec<Addr>,
         ido_id: u32,
         padding: Option<String>,
     },
     WhitelistRemove {
-        addresses: Vec<HumanAddr>,
+        addresses: Vec<Addr>,
         ido_id: u32,
         padding: Option<String>,
     },
@@ -107,8 +97,7 @@ pub enum HandleMsg {
     },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum HandleAnswer {
     ChangeAdmin {
         status: ResponseStatus,
@@ -143,8 +132,7 @@ pub enum HandleAnswer {
     },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum QueryMsg {
     Config {},
     IdoAmount {},
@@ -152,32 +140,32 @@ pub enum QueryMsg {
         ido_id: u32,
     },
     InWhitelist {
-        address: HumanAddr,
+        address: Addr,
         ido_id: u32,
     },
     IdoListOwnedBy {
-        address: HumanAddr,
+        address: Addr,
         start: u32,
         limit: u32,
     },
     Purchases {
         ido_id: u32,
-        address: HumanAddr,
+        address: Addr,
         start: Option<u32>,
         limit: Option<u32>,
     },
     ArchivedPurchases {
         ido_id: u32,
-        address: HumanAddr,
+        address: Addr,
         start: u32,
         limit: u32,
     },
     UserInfo {
-        address: HumanAddr,
+        address: Addr,
         ido_id: Option<u32>,
     },
     TierInfo {
-        address: HumanAddr,
+        address: Addr,
         viewing_key: Option<String>,
     },
 }
@@ -189,14 +177,13 @@ pub struct PurchaseAnswer {
     pub unlock_time: u64,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum QueryAnswer {
     Config {
-        admin: HumanAddr,
-        tier_contract: HumanAddr,
+        admin: Addr,
+        tier_contract: Addr,
         tier_contract_hash: String,
-        nft_contract: HumanAddr,
+        nft_contract: Addr,
         nft_contract_hash: String,
         lock_periods: Vec<u64>,
     },
@@ -204,10 +191,10 @@ pub enum QueryAnswer {
         amount: u32,
     },
     IdoInfo {
-        admin: HumanAddr,
+        admin: Addr,
         start_time: u64,
         end_time: u64,
-        token_contract: HumanAddr,
+        token_contract: Addr,
         token_contract_hash: String,
         price: Uint128,
         participants: u64,

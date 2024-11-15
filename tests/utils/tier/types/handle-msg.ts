@@ -27,24 +27,24 @@ export type Withdraw = {
 export type Claim = {
   claim: {
     padding?: string | null;
-    recipient?: HumanAddr | null;
+    recipient?: Addr | null;
   };
 };
 
 export type WithdrawRewards = {
   withdraw_rewards: {
     padding?: string | null;
-    recipient?: HumanAddr | null;
+    recipient?: Addr | null;
   };
 };
 
 export type Redelegate = {
   redelegate: {
     padding?: string | null;
-    recipient?: HumanAddr | null;
-    validator_address: HumanAddr;
+    recipient?: Addr | null;
+    validator_address: Addr;
   };
 };
 
-export type HumanAddr = string;
-export type ContractStatus = "active" | "stopped";
+export type Addr = string;
+export type ContractStatus = 'active' | 'stopped';

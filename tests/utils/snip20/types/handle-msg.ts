@@ -17,7 +17,7 @@ export type Transfer = {
     amount: Uint128;
     memo?: string | null;
     padding?: string | null;
-    recipient: HumanAddr;
+    recipient: Addr;
   };
 };
 
@@ -27,7 +27,7 @@ export type Send = {
     memo?: string | null;
     msg?: Binary | null;
     padding?: string | null;
-    recipient: HumanAddr;
+    recipient: Addr;
     recipient_code_hash?: string | null;
   };
 };
@@ -80,7 +80,7 @@ export type IncreaseAllowance = {
     amount: Uint128;
     expiration?: number | null;
     padding?: string | null;
-    spender: HumanAddr;
+    spender: Addr;
   };
 };
 
@@ -89,7 +89,7 @@ export type DecreaseAllowance = {
     amount: Uint128;
     expiration?: number | null;
     padding?: string | null;
-    spender: HumanAddr;
+    spender: Addr;
   };
 };
 
@@ -97,9 +97,9 @@ export type TransferFrom = {
   transfer_from: {
     amount: Uint128;
     memo?: string | null;
-    owner: HumanAddr;
+    owner: Addr;
     padding?: string | null;
-    recipient: HumanAddr;
+    recipient: Addr;
   };
 };
 
@@ -108,9 +108,9 @@ export type SendFrom = {
     amount: Uint128;
     memo?: string | null;
     msg?: Binary | null;
-    owner: HumanAddr;
+    owner: Addr;
     padding?: string | null;
-    recipient: HumanAddr;
+    recipient: Addr;
     recipient_code_hash?: string | null;
   };
 };
@@ -133,7 +133,7 @@ export type BurnFrom = {
   burn_from: {
     amount: Uint128;
     memo?: string | null;
-    owner: HumanAddr;
+    owner: Addr;
     padding?: string | null;
   };
 };
@@ -150,7 +150,7 @@ export type Mint = {
     amount: Uint128;
     memo?: string | null;
     padding?: string | null;
-    recipient: HumanAddr;
+    recipient: Addr;
   };
 };
 
@@ -163,28 +163,28 @@ export type BatchMint = {
 
 export type AddMinters = {
   add_minters: {
-    minters: HumanAddr[];
+    minters: Addr[];
     padding?: string | null;
   };
 };
 
 export type RemoveMinters = {
   remove_minters: {
-    minters: HumanAddr[];
+    minters: Addr[];
     padding?: string | null;
   };
 };
 
 export type SetMinters = {
   set_minters: {
-    minters: HumanAddr[];
+    minters: Addr[];
     padding?: string | null;
   };
 };
 
 export type ChangeAdmin = {
   change_admin: {
-    address: HumanAddr;
+    address: Addr;
     padding?: string | null;
   };
 };
@@ -203,51 +203,48 @@ export type RevokePermit = {
 };
 
 export type Uint128 = string;
-export type HumanAddr = string;
+export type Addr = string;
 export type Binary = string;
-export type ContractStatusLevel =
-  | "normal_run"
-  | "stop_all_but_redeems"
-  | "stop_all";
+export type ContractStatusLevel = 'normal_run' | 'stop_all_but_redeems' | 'stop_all';
 
 export interface TransferAction {
   amount: Uint128;
   memo?: string | null;
-  recipient: HumanAddr;
+  recipient: Addr;
 }
 
 export interface SendAction {
   amount: Uint128;
   memo?: string | null;
   msg?: Binary | null;
-  recipient: HumanAddr;
+  recipient: Addr;
   recipient_code_hash?: string | null;
 }
 
 export interface TransferFromAction {
   amount: Uint128;
   memo?: string | null;
-  owner: HumanAddr;
-  recipient: HumanAddr;
+  owner: Addr;
+  recipient: Addr;
 }
 
 export interface SendFromAction {
   amount: Uint128;
   memo?: string | null;
   msg?: Binary | null;
-  owner: HumanAddr;
-  recipient: HumanAddr;
+  owner: Addr;
+  recipient: Addr;
   recipient_code_hash?: string | null;
 }
 
 export interface BurnFromAction {
   amount: Uint128;
   memo?: string | null;
-  owner: HumanAddr;
+  owner: Addr;
 }
 
 export interface MintAction {
   amount: Uint128;
   memo?: string | null;
-  recipient: HumanAddr;
+  recipient: Addr;
 }

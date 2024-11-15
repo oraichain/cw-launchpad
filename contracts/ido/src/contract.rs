@@ -5,17 +5,17 @@ use std::vec;
 
 use crate::{
     msg::{
-        ContractStatus, HandleAnswer, HandleMsg, InitMsg, PaymentMethod, QueryAnswer, QueryMsg,
-        ResponseStatus, Whitelist,
+        ContractStatus, ExecuteMsg, HandleAnswer, InstantiateMsg, PaymentMethod, QueryAnswer,
+        QueryMsg, ResponseStatus, Whitelist,
     },
     state::{self, Config, Ido, Purchase},
     tier::{get_min_tier, get_tier, get_tier_from_nft_contract},
     utils::{self, assert_admin, assert_contract_active, assert_ido_admin},
 };
 use cosmwasm_std::{
-    coins, to_binary, Addr, Api, BankMsg, CosmosMsg, DepsMut, Env, Extern, HandleResponse,
-    HandleResult, HumanAddr, InitResponse, InitResult, MessageInfo, Querier, QueryResult, StdError,
-    Storage, Uint128,
+    coins, to_binary, Addr, Addr, Api, BankMsg, CosmosMsg, DepsMut, Env, Extern, HandleResponse,
+    HandleResult, InitResponse, InitResult, MessageInfo, Querier, QueryResult, StdError, Storage,
+    Uint128,
 };
 use secret_toolkit_snip20::{transfer_from_msg, transfer_msg};
 use secret_toolkit_utils::{pad_handle_result, pad_query_result};
@@ -24,11 +24,11 @@ pub const BLOCK_SIZE: usize = 256;
 pub const USCRT: &str = "uscrt";
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InitMsg) -> InitResult {
+pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> InitResult {
     let admin = msg.admin.unwrap_or(env.message.sender);
-    let canonical_admin = deps.api.canonical_address(&admin)?;
-    let tier_contract = deps.api.canonical_address(&msg.tier_contract)?;
-    let nft_contract = deps.api.canonical_address(&msg.nft_contract)?;
+    let canonical_admin = deps.api.addr_canonicalize(&admin)?;
+    let tier_contract = deps.api.addr_canonicalize(&msg.tier_contract)?;
+    let nft_contract = deps.api.addr_canonicalize(&msg.nft_contract)?;
     let lock_periods_len = msg.lock_periods.len();
 
     let mut config = Config {
@@ -58,11 +58,11 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InitMsg) -> 
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: HandleMsg) -> HandleResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> HandleResult {
     let response = match msg {
-        HandleMsg::ChangeAdmin { admin, .. } => change_admin(deps, env, info, admin),
-        HandleMsg::ChangeStatus { status, .. } => change_status(deps, env, status),
-        HandleMsg::StartIdo {
+        ExecuteMsg::ChangeAdmin { admin, .. } => change_admin(deps, env, info, admin),
+        ExecuteMsg::ChangeStatus { status, .. } => change_status(deps, env, status),
+        ExecuteMsg::StartIdo {
             start_time,
             end_time,
             token_contract,
@@ -77,8 +77,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: HandleMsg) -> Ha
         } => {
             let mut ido = Ido::default();
             assert_admin(deps, &env.message.sender)?;
-            let admin = deps.api.canonical_address(&env.message.sender)?;
-            let token_contract = deps.api.canonical_address(&token_contract)?;
+            let admin = deps.api.addr_canonicalize(&env.message.sender)?;
+            let token_contract = deps.api.addr_canonicalize(&token_contract)?;
             ido.admin = admin;
             ido.start_time = start_time;
             ido.end_time = end_time;
@@ -94,33 +94,33 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: HandleMsg) -> Ha
                 code_hash,
             } = payment
             {
-                let payment_token_contract = deps.api.canonical_address(&contract)?;
+                let payment_token_contract = deps.api.addr_canonicalize(&contract)?;
                 ido.payment_token_contract = Some(payment_token_contract);
                 ido.payment_token_hash = Some(code_hash);
             }
 
             start_ido(deps, env, ido, whitelist)
         }
-        HandleMsg::BuyTokens {
+        ExecuteMsg::BuyTokens {
             amount,
             ido_id,
             viewing_key,
             ..
         } => buy_tokens(deps, env, ido_id, amount.u128(), viewing_key),
-        HandleMsg::WhitelistAdd {
+        ExecuteMsg::WhitelistAdd {
             addresses, ido_id, ..
         } => whitelist_add(deps, env, addresses, ido_id),
-        HandleMsg::WhitelistRemove {
+        ExecuteMsg::WhitelistRemove {
             addresses, ido_id, ..
         } => whitelist_remove(deps, env, addresses, ido_id),
-        HandleMsg::RecvTokens {
+        ExecuteMsg::RecvTokens {
             ido_id,
             start,
             limit,
             purchase_indices,
             ..
         } => recv_tokens(deps, env, ido_id, start, limit, purchase_indices),
-        HandleMsg::Withdraw { ido_id, .. } => withdraw(deps, env, ido_id),
+        ExecuteMsg::Withdraw { ido_id, .. } => withdraw(deps, env, ido_id),
     };
 
     pad_handle_result(response, BLOCK_SIZE)
@@ -130,7 +130,7 @@ fn change_admin(deps: DepsMut, env: Env, info: MessageInfo, admin: Addr) -> Hand
     assert_admin(deps, &info.sender)?;
 
     let mut config = Config::load(&deps.storage)?;
-    let new_admin = deps.api.canonical_address(&admin)?;
+    let new_admin = deps.api.addr_canonicalize(&admin)?;
     config.admin = new_admin;
 
     config.save(&mut deps.storage)?;
@@ -210,21 +210,21 @@ fn start_ido(deps: DepsMut, env: Env, mut ido: Ido, whitelist: Whitelist) -> Han
     match whitelist {
         Whitelist::Empty { with } => {
             for address in with.unwrap_or_default() {
-                let canonical_address = deps.api.canonical_address(&address)?;
-                ido_whitelist.insert(&mut deps.storage, &canonical_address, &true)?;
+                let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
+                ido_whitelist.insert(&mut deps.storage, &addr_canonicalize, &true)?;
             }
         }
         Whitelist::Shared { with_blocked } => {
             for address in with_blocked.unwrap_or_default() {
-                let canonical_address = deps.api.canonical_address(&address)?;
-                ido_whitelist.insert(&mut deps.storage, &canonical_address, &false)?;
+                let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
+                ido_whitelist.insert(&mut deps.storage, &addr_canonicalize, &false)?;
             }
         }
     }
 
     ido.save(&mut deps.storage)?;
 
-    let canonical_sender = deps.api.canonical_address(&env.message.sender)?;
+    let canonical_sender = deps.api.addr_canonicalize(&env.message.sender)?;
     let startup_ido_list = state::ido_list_owned_by(&canonical_sender);
     startup_ido_list.push(&mut deps.storage, &ido_id)?;
 
@@ -262,7 +262,7 @@ fn buy_tokens(
     assert_contract_active(&deps.storage)?;
 
     let sender = env.message.sender;
-    let canonical_sender = deps.api.canonical_address(&sender)?;
+    let canonical_sender = deps.api.addr_canonicalize(&sender)?;
 
     let mut ido = Ido::load(&deps.storage, ido_id)?;
     if !ido.is_active(env.block.time) {
@@ -400,7 +400,7 @@ fn recv_tokens(
 ) -> HandleResult {
     assert_contract_active(&deps.storage)?;
     //
-    let canonical_sender = deps.api.canonical_address(&env.message.sender)?;
+    let canonical_sender = deps.api.addr_canonicalize(&env.message.sender)?;
     let current_time = env.block.time;
     let all_user_infos = state::user_info();
     let all_user_infos_in_ido = state::user_info_in_ido(&canonical_sender);
@@ -631,14 +631,14 @@ fn withdraw(deps: DepsMut, env: Env, ido_id: u32) -> HandleResult {
     })
 }
 
-fn whitelist_add(deps: DepsMut, env: Env, addresses: Vec<HumanAddr>, ido_id: u32) -> HandleResult {
+fn whitelist_add(deps: DepsMut, env: Env, addresses: Vec<Addr>, ido_id: u32) -> HandleResult {
     assert_contract_active(&deps.storage)?;
     assert_ido_admin(deps, &env.message.sender, ido_id)?;
 
     let whitelist = state::ido_whitelist(ido_id);
     for address in addresses {
-        let canonical_address = deps.api.canonical_address(&address)?;
-        whitelist.insert(&mut deps.storage, &canonical_address, &true)?;
+        let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
+        whitelist.insert(&mut deps.storage, &addr_canonicalize, &true)?;
     }
 
     let answer = to_binary(&HandleAnswer::WhitelistAdd {
@@ -651,20 +651,15 @@ fn whitelist_add(deps: DepsMut, env: Env, addresses: Vec<HumanAddr>, ido_id: u32
     })
 }
 
-fn whitelist_remove(
-    deps: DepsMut,
-    env: Env,
-    addresses: Vec<HumanAddr>,
-    ido_id: u32,
-) -> HandleResult {
+fn whitelist_remove(deps: DepsMut, env: Env, addresses: Vec<Addr>, ido_id: u32) -> HandleResult {
     assert_contract_active(&deps.storage)?;
     assert_ido_admin(deps, &env.message.sender, ido_id)?;
 
     let whitelist = state::ido_whitelist(ido_id);
 
     for address in addresses {
-        let canonical_address = deps.api.canonical_address(&address)?;
-        whitelist.insert(&mut deps.storage, &canonical_address, &false)?;
+        let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
+        whitelist.insert(&mut deps.storage, &addr_canonicalize, &false)?;
     }
 
     let answer = to_binary(&HandleAnswer::WhitelistRemove {
@@ -705,8 +700,8 @@ fn do_query(deps: &Extern<S, A, Q>, msg: QueryMsg) -> QueryResult {
             start,
             limit,
         } => {
-            let canonical_address = deps.api.canonical_address(&address)?;
-            let ido_list = state::ido_list_owned_by(&canonical_address);
+            let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
+            let ido_list = state::ido_list_owned_by(&addr_canonicalize);
             let amount = ido_list.get_len(&deps.storage)?;
             let ido_ids = ido_list.paging(&deps.storage, start, limit)?;
 
@@ -718,13 +713,13 @@ fn do_query(deps: &Extern<S, A, Q>, msg: QueryMsg) -> QueryResult {
             start,
             limit,
         } => {
-            let canonical_address = deps.api.canonical_address(&address)?;
-            let purchases = state::purchases(&canonical_address, ido_id);
+            let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
+            let purchases = state::purchases(&addr_canonicalize, ido_id);
             let amount = purchases.get_len(&deps.storage)?;
 
             let start = start.unwrap_or(0);
             let limit = limit.unwrap_or(300);
-            let purchases = state::purchases(&canonical_address, ido_id);
+            let purchases = state::purchases(&addr_canonicalize, ido_id);
             let raw_purchases = purchases.paging(&deps.storage, start, limit)?;
             let purchases = raw_purchases.into_iter().map(|p| p.to_answer()).collect();
 
@@ -736,8 +731,8 @@ fn do_query(deps: &Extern<S, A, Q>, msg: QueryMsg) -> QueryResult {
             start,
             limit,
         } => {
-            let canonical_address = deps.api.canonical_address(&address)?;
-            let purchases = state::archived_purchases(&canonical_address, ido_id);
+            let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
+            let purchases = state::archived_purchases(&addr_canonicalize, ido_id);
             let amount = purchases.get_len(&deps.storage)?;
 
             let raw_purchases = purchases.paging(&deps.storage, start, limit)?;
@@ -746,13 +741,13 @@ fn do_query(deps: &Extern<S, A, Q>, msg: QueryMsg) -> QueryResult {
             QueryAnswer::ArchivedPurchases { purchases, amount }
         }
         QueryMsg::UserInfo { address, ido_id } => {
-            let canonical_address = deps.api.canonical_address(&address)?;
+            let addr_canonicalize = deps.api.addr_canonicalize(&address)?;
             let user_info = if let Some(ido_id) = ido_id {
-                let all_user_infos_in_ido = state::user_info_in_ido(&canonical_address);
+                let all_user_infos_in_ido = state::user_info_in_ido(&addr_canonicalize);
                 all_user_infos_in_ido.get(&deps.storage, &ido_id)
             } else {
                 let all_user_infos = state::user_info();
-                all_user_infos.get(&deps.storage, &canonical_address)
+                all_user_infos.get(&deps.storage, &addr_canonicalize)
             }
             .unwrap_or_default();
 
@@ -789,23 +784,25 @@ mod tests {
             mock_dependencies, mock_dependencies_with_balance, mock_dependencies_with_balances,
             mock_env, mock_info, MockApi, MockQuerier, MockStorage,
         },
-        OwnedDeps, StdResult,
+        Empty, OwnedDeps, StdResult,
     };
     use rand::{thread_rng, Rng};
     use std::time::{SystemTime, UNIX_EPOCH};
 
-    fn get_init_msg() -> InitMsg {
-        InitMsg {
+    fn get_init_msg() -> InstantiateMsg {
+        InstantiateMsg {
             admin: None,
-            tier_contract: HumanAddr::from("tier"),
+            tier_contract: Addr::from("tier"),
             tier_contract_hash: String::from("tier_hash"),
-            nft_contract: HumanAddr::from("nft"),
+            nft_contract: Addr::from("nft"),
             nft_contract_hash: String::from("nft_hash"),
             lock_periods: vec![250, 200, 150, 100],
         }
     }
 
-    fn initialize_with(msg: InitMsg) -> StdResult<OwnedDeps<MockStorage, MockApi, MockQuerier>> {
+    fn initialize_with(
+        msg: InstantiateMsg,
+    ) -> StdResult<OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>> {
         let mut deps = mock_dependencies();
         let info = mock_info("admin", &[]);
         let env = mock_env();
@@ -819,7 +816,7 @@ mod tests {
         initialize_with(msg).unwrap()
     }
 
-    fn start_ido_msg() -> HandleMsg {
+    fn start_ido_msg() -> ExecuteMsg {
         let mut rng = thread_rng();
         let token_contract = format!("token_{}", rng.gen_range(0..1000));
         let token_contract_hash = format!("{}_hash", token_contract);
@@ -837,7 +834,7 @@ mod tests {
         let mut whitelist = Vec::new();
         for i in 0..rng.gen_range(20..100) {
             let address = format!("address_{}", i);
-            whitelist.push(HumanAddr(address));
+            whitelist.push(Addr(address));
         }
 
         let mut tokens_per_tier = Vec::new();
@@ -849,13 +846,13 @@ mod tests {
         }
         tokens_per_tier.push(Uint128(remaining_tokens));
 
-        HandleMsg::StartIdo {
+        ExecuteMsg::StartIdo {
             start_time,
             end_time,
-            token_contract: HumanAddr(token_contract),
+            token_contract: Addr(token_contract),
             token_contract_hash,
             payment: PaymentMethod::Token {
-                contract: HumanAddr::from("token"),
+                contract: Addr::from("token"),
                 code_hash: String::from("token_hash"),
             },
             price: Uint128(price),
@@ -887,13 +884,10 @@ mod tests {
         let deps = initialize_with(msg.clone()).unwrap();
 
         let config = Config::load(&deps.storage).unwrap();
-        let admin = deps
-            .api
-            .canonical_address(&HumanAddr::from("admin"))
-            .unwrap();
+        let admin = deps.api.addr_canonicalize(&Addr::from("admin")).unwrap();
 
-        let tier_contract = deps.api.canonical_address(&msg.tier_contract).unwrap();
-        let nft_contract = deps.api.canonical_address(&msg.nft_contract).unwrap();
+        let tier_contract = deps.api.addr_canonicalize(&msg.tier_contract).unwrap();
+        let nft_contract = deps.api.addr_canonicalize(&msg.nft_contract).unwrap();
         let min_tier = manual::get_min_tier(&deps, &config).unwrap();
 
         assert_eq!(config.admin, admin);
@@ -923,33 +917,33 @@ mod tests {
     #[test]
     fn change_admin() {
         let mut deps = initialize_with_default();
-        let admin = HumanAddr::from("admin");
-        let user = HumanAddr::from("user");
-        let new_admin = HumanAddr::from("new_admin");
+        let admin = Addr::from("admin");
+        let info = mock_info("user", &[]);
+        let new_admin = Addr::from("new_admin");
 
-        let change_admin_msg = HandleMsg::ChangeAdmin {
+        let change_admin_msg = ExecuteMsg::ChangeAdmin {
             admin: new_admin.clone(),
             padding: None,
         };
 
         let info = mock_info(&user, &[]);
         let env = mock_env();
-        let response = execute(deps, env, change_admin_msg.clone());
+        let response = execute(deps, env, info, change_admin_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Unauthorized"));
 
         let info = mock_info(&new_admin, &[]);
         let env = mock_env();
-        let response = execute(deps, env, change_admin_msg.clone());
+        let response = execute(deps, env, info, change_admin_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Unauthorized"));
 
         let info = mock_info(&admin, &[]);
         let env = mock_env();
-        execute(deps, env, change_admin_msg).unwrap();
+        execute(deps, env, info, change_admin_msg).unwrap();
 
         let config = Config::load(&deps.storage).unwrap();
-        let new_admin_canonical = deps.api.canonical_address(&new_admin).unwrap();
+        let new_admin_canonical = deps.api.addr_canonicalize(&new_admin).unwrap();
         assert_eq!(config.admin, new_admin_canonical);
     }
 
@@ -958,7 +952,7 @@ mod tests {
         let mut deps = initialize_with_default();
         let info = mock_info("user", &[]);
         let env = mock_env();
-        let change_admin_msg = HandleMsg::ChangeStatus {
+        let change_admin_msg = ExecuteMsg::ChangeStatus {
             status: ContractStatus::Stopped,
             padding: None,
         };
@@ -973,7 +967,7 @@ mod tests {
         let config = Config::load(&deps.storage).unwrap();
         assert_eq!(config.status, ContractStatus::Stopped as u8);
 
-        let change_admin_msg = HandleMsg::ChangeStatus {
+        let change_admin_msg = ExecuteMsg::ChangeStatus {
             status: ContractStatus::Active,
             padding: None,
         };
@@ -990,10 +984,10 @@ mod tests {
         let env = mock_env();
 
         for start_time in 1..10 {
-            let start_ido_msg = HandleMsg::StartIdo {
+            let start_ido_msg = ExecuteMsg::StartIdo {
                 start_time,
                 end_time: 1,
-                token_contract: HumanAddr::from("token_contract"),
+                token_contract: Addr::from("token_contract"),
                 token_contract_hash: String::new(),
                 price: Uint128::from(1u128),
                 payment: PaymentMethod::Native,
@@ -1007,7 +1001,7 @@ mod tests {
                     .collect(),
             };
 
-            let response = execute(deps, env.clone(), start_ido_msg);
+            let response = execute(deps, env.clone(), info, start_ido_msg);
             let error = extract_error(response);
             assert!(error.contains("End time must be greater than start time"));
         }
@@ -1021,10 +1015,10 @@ mod tests {
         env.block.time = 10;
 
         for end_time in 1..10 {
-            let start_ido_msg = HandleMsg::StartIdo {
+            let start_ido_msg = ExecuteMsg::StartIdo {
                 start_time: 0,
                 end_time,
-                token_contract: HumanAddr::from("token_contract"),
+                token_contract: Addr::from("token_contract"),
                 token_contract_hash: String::new(),
                 price: Uint128::from(1u128),
                 payment: PaymentMethod::Native,
@@ -1038,7 +1032,7 @@ mod tests {
                     .collect(),
             };
 
-            let response = execute(deps, env.clone(), start_ido_msg);
+            let response = execute(deps, env.clone(), info, start_ido_msg);
             let error = extract_error(response);
             assert!(error.contains("Ido ends in the past"));
         }
@@ -1052,13 +1046,13 @@ mod tests {
         env.block.time = 0;
 
         let allowed_addresses = (0..100)
-            .map(|n| HumanAddr::from(format!("address_{}", n)))
+            .map(|n| Addr::from(format!("address_{}", n)))
             .collect::<Vec<_>>();
 
-        let start_ido_msg = HandleMsg::StartIdo {
+        let start_ido_msg = ExecuteMsg::StartIdo {
             start_time: 0,
             end_time: 1,
-            token_contract: HumanAddr::from("token_contract"),
+            token_contract: Addr::from("token_contract"),
             token_contract_hash: String::new(),
             price: Uint128::from(1u128),
             payment: PaymentMethod::Native,
@@ -1074,7 +1068,7 @@ mod tests {
                 .collect(),
         };
 
-        let response = execute(deps, env, start_ido_msg).unwrap();
+        let response = execute(deps, env, info, start_ido_msg).unwrap();
         let data = response.data.unwrap();
         let ido_id = match from_binary(&data).unwrap() {
             HandleAnswer::StartIdo { ido_id, .. } => ido_id,
@@ -1091,7 +1085,7 @@ mod tests {
             assert!(in_whitelist);
         }
 
-        let random_address = HumanAddr::from("random_address");
+        let random_address = Addr::from("random_address");
         let in_whitelist = utils::in_whitelist(&deps, &random_address, ido_id).unwrap();
         assert!(!in_whitelist);
     }
@@ -1104,13 +1098,13 @@ mod tests {
         env.block.time = 0;
 
         let blocked_addresses = (0..100)
-            .map(|n| HumanAddr::from(format!("address_{}", n)))
+            .map(|n| Addr::from(format!("address_{}", n)))
             .collect::<Vec<_>>();
 
-        let start_ido_msg = HandleMsg::StartIdo {
+        let start_ido_msg = ExecuteMsg::StartIdo {
             start_time: 0,
             end_time: 1,
-            token_contract: HumanAddr::from("token_contract"),
+            token_contract: Addr::from("token_contract"),
             token_contract_hash: String::new(),
             price: Uint128::from(1u128),
             payment: PaymentMethod::Native,
@@ -1126,7 +1120,7 @@ mod tests {
                 .collect(),
         };
 
-        let response = execute(deps, env, start_ido_msg).unwrap();
+        let response = execute(deps, env, info, start_ido_msg).unwrap();
         let data = response.data.unwrap();
         let ido_id = match from_binary(&data).unwrap() {
             HandleAnswer::StartIdo { ido_id, .. } => ido_id,
@@ -1143,7 +1137,7 @@ mod tests {
             assert!(!in_whitelist);
         }
 
-        let random_address = HumanAddr::from("random_address");
+        let random_address = Addr::from("random_address");
         let in_whitelist = utils::in_whitelist(&deps, &random_address, ido_id).unwrap();
         assert!(in_whitelist);
     }
@@ -1153,7 +1147,7 @@ mod tests {
         let mut deps = initialize_with_default();
 
         let info = mock_info("admin", &[]);
-        let canonical_ido_admin = deps.api.canonical_address(&ido_admin).unwrap();
+        let canonical_ido_admin = deps.api.addr_canonicalize(&ido_admin).unwrap();
         let env = mock_env();
         let msg = start_ido_msg();
 
@@ -1162,7 +1156,7 @@ mod tests {
         assert_eq!(Ido::len(&deps.storage), Ok(0));
 
         let HandleResponse { messages, data, .. } =
-            execute(deps, env.clone(), msg.clone()).unwrap();
+            execute(deps, env.clone(), info, msg.clone()).unwrap();
 
         match from_binary(&data.unwrap()).unwrap() {
             HandleAnswer::StartIdo { ido_id, status, .. } => {
@@ -1178,7 +1172,7 @@ mod tests {
         let startup_ido_list = state::ido_list_owned_by(&canonical_ido_admin);
         assert_eq!(startup_ido_list.get_len(&deps.storage), Ok(1));
 
-        if let HandleMsg::StartIdo {
+        if let ExecuteMsg::StartIdo {
             start_time,
             end_time,
             token_contract,
@@ -1190,12 +1184,12 @@ mod tests {
             ..
         } = msg
         {
-            let sender = deps.api.canonical_address(&env.message.sender).unwrap();
-            let token_contract_canonical = deps.api.canonical_address(&token_contract).unwrap();
+            let sender = deps.api.addr_canonicalize(&env.message.sender).unwrap();
+            let token_contract_canonical = deps.api.addr_canonicalize(&token_contract).unwrap();
 
             let payment_token_contract_canonical = match payment {
                 PaymentMethod::Native => None,
-                PaymentMethod::Token { contract, .. } => deps.api.canonical_address(&contract).ok(),
+                PaymentMethod::Token { contract, .. } => deps.api.addr_canonicalize(&contract).ok(),
             };
 
             assert_eq!(ido.admin, sender);
@@ -1238,12 +1232,12 @@ mod tests {
     }
 
     fn change_tokens_per_tier(
-        msg: &mut HandleMsg,
+        msg: &mut ExecuteMsg,
         mut tokens_per_tier: Option<Vec<u128>>,
     ) -> Vec<u128> {
         if tokens_per_tier.is_none() {
             let mut total_amount = match msg {
-                HandleMsg::StartIdo { total_amount, .. } => total_amount.u128(),
+                ExecuteMsg::StartIdo { total_amount, .. } => total_amount.u128(),
                 _ => unreachable!(),
             };
 
@@ -1267,7 +1261,7 @@ mod tests {
 
         let new_tokens_per_tier = tokens_per_tier.unwrap();
 
-        if let HandleMsg::StartIdo {
+        if let ExecuteMsg::StartIdo {
             ref mut tokens_per_tier,
             ..
         } = msg
@@ -1291,20 +1285,20 @@ mod tests {
         let mut msg = start_ido_msg();
 
         change_tokens_per_tier(&mut msg, Some(Vec::new()));
-        let ido_admin = HumanAddr::from("admin");
-        let env = mock_env(&ido_admin, &[]);
+        let info = mock_info("admin", &[]);
+        let env = mock_env();
 
-        let response = execute(deps, env.clone(), msg.clone());
+        let response = execute(deps, env.clone(), info, msg.clone());
         let error = extract_error(response);
         assert!(error.contains("`tokens_per_tier` has wrong size"));
 
         change_tokens_per_tier(&mut msg, Some(vec![1, 2, 3, 4]));
-        let response = execute(deps, env.clone(), msg.clone());
+        let response = execute(deps, env.clone(), info, msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Sum of `tokens_per_tier` can't be less than total tokens amount"));
 
         let tokens_per_tier = change_tokens_per_tier(&mut msg, None);
-        let response = execute(deps, env, msg).unwrap();
+        let response = execute(deps, env, info, msg).unwrap();
         let data = response.data.unwrap();
         let ido_id = match from_binary(&data).unwrap() {
             HandleAnswer::StartIdo { ido_id, .. } => ido_id,
@@ -1323,20 +1317,20 @@ mod tests {
         config.status = ContractStatus::Stopped as u8;
         config.save(&mut deps.storage).unwrap();
 
-        let user = HumanAddr::from("user");
-        let env = mock_env(&user, &[]);
+        let info = mock_info("user", &[]);
+        let env = mock_env();
 
         let mut ido = Ido::default();
         let ido_id = ido.save(&mut deps.storage).unwrap();
 
-        let buy_tokens_msg = HandleMsg::BuyTokens {
+        let buy_tokens_msg = ExecuteMsg::BuyTokens {
             ido_id,
             amount: Uint128::from(100u128),
             viewing_key: None,
             padding: None,
         };
 
-        let response = execute(deps, env, buy_tokens_msg);
+        let response = execute(deps, env, info, buy_tokens_msg);
         let error = extract_error(response);
         assert!(error.contains("Contract is not active"));
     }
@@ -1345,12 +1339,12 @@ mod tests {
     fn buy_tokens_ido_not_active() {
         let mut deps = initialize_with_default();
 
-        let user = HumanAddr::from("user");
-        let mut env = mock_env(&user, &[]);
+        let info = mock_info("user", &[]);
+        let mut env = mock_env();
         env.block.time = 5;
 
-        let token_contract = HumanAddr::from("token_contract");
-        let canonical_token_contract = deps.api.canonical_address(&token_contract).unwrap();
+        let token_contract = Addr::from("token_contract");
+        let canonical_token_contract = deps.api.addr_canonicalize(&token_contract).unwrap();
 
         let mut ido = Ido::default();
         ido.start_time = 6;
@@ -1359,7 +1353,7 @@ mod tests {
         ido.payment_token_contract = Some(canonical_token_contract);
         let ido_id = ido.save(&mut deps.storage).unwrap();
 
-        let buy_tokens_msg = HandleMsg::BuyTokens {
+        let buy_tokens_msg = ExecuteMsg::BuyTokens {
             ido_id,
             amount: Uint128::from(100u128),
             viewing_key: None,
@@ -1368,7 +1362,7 @@ mod tests {
 
         assert!(!ido.is_active(env.block.time));
 
-        let response = execute(deps, env, buy_tokens_msg);
+        let response = execute(deps, env, info, buy_tokens_msg);
         let error = extract_error(response);
         assert!(error.contains("IDO is not active"));
     }
@@ -1377,8 +1371,8 @@ mod tests {
     fn buy_tokens_all_sold() {
         let mut deps = initialize_with_default();
 
-        let user = HumanAddr::from("user");
-        let mut env = mock_env(&user, &coins(1, USCRT));
+        let info = mock_info("user", &coins(1, USCRT));
+        let mut env = mock_env();
         env.block.time = 5;
 
         let mut ido = Ido::default();
@@ -1390,14 +1384,14 @@ mod tests {
         ido.remaining_tokens_per_tier = vec![40, 30, 20, 10];
         let ido_id = ido.save(&mut deps.storage).unwrap();
 
-        let buy_tokens_msg = HandleMsg::BuyTokens {
+        let buy_tokens_msg = ExecuteMsg::BuyTokens {
             ido_id,
             amount: Uint128::from(1u128),
             viewing_key: None,
             padding: None,
         };
 
-        let response = execute(deps, env.clone(), buy_tokens_msg.clone());
+        let response = execute(deps, env.clone(), info, buy_tokens_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("All tokens are sold"));
         assert_eq!(ido.remaining_tokens(), 0);
@@ -1406,7 +1400,7 @@ mod tests {
         ido.remaining_tokens_per_tier = vec![0, 0, 0, 0];
         ido.save(&mut deps.storage).unwrap();
 
-        let response = execute(deps, env, buy_tokens_msg);
+        let response = execute(deps, env, info, buy_tokens_msg);
         let error = extract_error(response);
 
         assert!(error.contains("All tokens are sold for your tier"));
@@ -1418,8 +1412,8 @@ mod tests {
     fn buy_tokens_zero_amount() {
         let mut deps = initialize_with_default();
 
-        let user = HumanAddr::from("user");
-        let mut env = mock_env(&user, &[]);
+        let info = mock_info("user", &[]);
+        let mut env = mock_env();
         env.block.time = 5;
 
         let mut ido = Ido::default();
@@ -1431,26 +1425,26 @@ mod tests {
 
         assert!(ido.is_native_payment());
 
-        let buy_tokens_msg = HandleMsg::BuyTokens {
+        let buy_tokens_msg = ExecuteMsg::BuyTokens {
             ido_id,
             amount: Uint128::from(100u128),
             viewing_key: None,
             padding: None,
         };
 
-        let response = execute(deps, env.clone(), buy_tokens_msg);
+        let response = execute(deps, env.clone(), info, buy_tokens_msg);
         let error = extract_error(response);
         assert!(error.contains("Zero amount"));
 
-        let buy_tokens_msg = HandleMsg::BuyTokens {
+        let buy_tokens_msg = ExecuteMsg::BuyTokens {
             ido_id,
             amount: Uint128::from(0u128),
             viewing_key: None,
             padding: None,
         };
 
-        let token_contract = HumanAddr::from("token_contract");
-        let canonical_token_contract = deps.api.canonical_address(&token_contract).unwrap();
+        let token_contract = Addr::from("token_contract");
+        let canonical_token_contract = deps.api.addr_canonicalize(&token_contract).unwrap();
 
         ido.payment_token_hash = Some(String::new());
         ido.payment_token_contract = Some(canonical_token_contract);
@@ -1458,21 +1452,21 @@ mod tests {
 
         assert!(!ido.is_native_payment());
 
-        let response = execute(deps, env, buy_tokens_msg);
+        let response = execute(deps, env, info, buy_tokens_msg);
         let error = extract_error(response);
         assert!(error.contains("Zero amount"));
     }
 
     fn buy_tokens_blacklisted() {
         let mut deps = initialize_with_default();
-        let user = HumanAddr::from("user");
-        let canonical_user = deps.api.canonical_address(&user).unwrap();
+        let info = mock_info("user", &[]);
+        let canonical_user = deps.api.addr_canonicalize(&user).unwrap();
 
-        let mut env = mock_env(&user, &[]);
+        let mut env = mock_env();
         env.block.time = 5;
 
-        let token_contract = HumanAddr::from("token_contract");
-        let canonical_token_contract = deps.api.canonical_address(&token_contract).unwrap();
+        let token_contract = Addr::from("token_contract");
+        let canonical_token_contract = deps.api.addr_canonicalize(&token_contract).unwrap();
 
         manual::set_tier(1);
 
@@ -1487,7 +1481,7 @@ mod tests {
         ido.remaining_tokens_per_tier = vec![30, 30, 30, 0];
 
         let ido_id = ido.save(&mut deps.storage).unwrap();
-        let buy_tokens_msg = HandleMsg::BuyTokens {
+        let buy_tokens_msg = ExecuteMsg::BuyTokens {
             ido_id,
             amount: Uint128::from(1u128),
             viewing_key: None,
@@ -1496,7 +1490,7 @@ mod tests {
 
         assert!(!utils::in_whitelist(&deps, &user, ido_id).unwrap());
 
-        let response = execute(deps, env.clone(), buy_tokens_msg.clone());
+        let response = execute(deps, env.clone(), info, buy_tokens_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("All tokens are sold for your tier"));
 
@@ -1510,7 +1504,7 @@ mod tests {
 
         assert!(!utils::in_whitelist(&deps, &user, ido_id).unwrap());
 
-        let response = execute(deps, env, buy_tokens_msg);
+        let response = execute(deps, env, info, buy_tokens_msg);
         let error = extract_error(response);
         assert!(error.contains("All tokens are sold for your tier"));
     }
@@ -1519,13 +1513,13 @@ mod tests {
         let init_msg = get_init_msg();
         let mut deps = initialize_with(init_msg).unwrap();
 
-        let ido_admin = HumanAddr::from("admin");
-        let canonical_ido_admin = deps.api.canonical_address(&ido_admin).unwrap();
+        let info = mock_info("admin", &[]);
+        let canonical_ido_admin = deps.api.addr_canonicalize(&ido_admin).unwrap();
 
-        let user = HumanAddr::from("user");
+        let info = mock_info("user", &[]);
 
-        let token_contract = HumanAddr::from("token_contract");
-        let canonical_token_contract = deps.api.canonical_address(&token_contract).unwrap();
+        let token_contract = Addr::from("token_contract");
+        let canonical_token_contract = deps.api.addr_canonicalize(&token_contract).unwrap();
 
         let tokens_per_tier = vec![40, 30, 20, 10];
 
@@ -1549,32 +1543,34 @@ mod tests {
             let tier_index = (tier - 1) as usize;
             let tokens_amount = ido.remaining_tokens_per_tier[tier_index];
             let scrt_amount = tokens_amount.checked_div(ido.price).unwrap();
-            let mut env = mock_env(&user, &coins(scrt_amount + 10, USCRT));
+            let info = mock_info("user", &coins(scrt_amount + 10, USCRT));
+            let mut env = mock_env();
             env.block.time = 5;
 
-            let buy_tokens_msg = HandleMsg::BuyTokens {
+            let buy_tokens_msg = ExecuteMsg::BuyTokens {
                 ido_id,
                 amount: Uint128::zero(),
                 viewing_key: None,
                 padding: None,
             };
 
-            let response = execute(deps, env.clone(), buy_tokens_msg.clone());
+            let response = execute(deps, env.clone(), info, buy_tokens_msg.clone());
             let error = extract_error(response);
             assert!(error.contains(&format!(
                 "You cannot buy more than {} tokens",
                 tokens_amount
             )));
 
-            let mut env = mock_env(&user, &coins(scrt_amount, USCRT));
+            let info = mock_info("user", &coins(scrt_amount, USCRT));
+            let mut env = mock_env();
             env.block.time = 5;
 
-            execute(deps, env.clone(), buy_tokens_msg.clone()).unwrap();
-
-            let mut env = mock_env(&user, &coins(10, USCRT));
+            execute(deps, env.clone(), info, buy_tokens_msg.clone()).unwrap();
+            let info = mock_info("user", &coins(10, USCRT));
+            let mut env = mock_env();
             env.block.time = 5;
 
-            let response = execute(deps, env.clone(), buy_tokens_msg.clone());
+            let response = execute(deps, env.clone(), info, buy_tokens_msg.clone());
             let error = extract_error(response);
             if tier == 1 {
                 assert!(error.contains("All tokens are sold"));
@@ -1590,22 +1586,22 @@ mod tests {
 
         let lock_periods = init_msg.lock_periods;
 
-        let ido_admin = HumanAddr::from("admin");
-        let canonical_ido_admin = deps.api.canonical_address(&ido_admin).unwrap();
+        let info = mock_info("admin", &[]);
+        let canonical_ido_admin = deps.api.addr_canonicalize(&ido_admin).unwrap();
 
-        let user = HumanAddr::from("user");
-        let canonical_user = deps.api.canonical_address(&user).unwrap();
+        let info = mock_info("user", &[]);
+        let canonical_user = deps.api.addr_canonicalize(&user).unwrap();
 
-        let mut env = mock_env(&user, &[]);
+        let mut env = mock_env();
         env.block.time = 5;
 
         let payment_token_hash = String::from("payment_token_hash");
-        let payment_token_contract = HumanAddr::from("payment_contract");
+        let payment_token_contract = Addr::from("payment_contract");
         let canonical_payment_token_contract =
-            deps.api.canonical_address(&payment_token_contract).unwrap();
+            deps.api.addr_canonicalize(&payment_token_contract).unwrap();
 
-        let token_contract = HumanAddr::from("token_contract");
-        let canonical_token_contract = deps.api.canonical_address(&token_contract).unwrap();
+        let token_contract = Addr::from("token_contract");
+        let canonical_token_contract = deps.api.addr_canonicalize(&token_contract).unwrap();
 
         let mut ido = Ido::default();
         ido.admin = canonical_ido_admin;
@@ -1632,14 +1628,14 @@ mod tests {
             let tier_index = tier.checked_sub(1).unwrap() as usize;
             let max_tokens_amount = ido.remaining_tokens_per_tier[tier_index];
 
-            let buy_too_much_tokens = HandleMsg::BuyTokens {
+            let buy_too_much_tokens = ExecuteMsg::BuyTokens {
                 ido_id,
                 amount: Uint128::from(max_tokens_amount + 1),
                 viewing_key: None,
                 padding: None,
             };
 
-            let response = execute(deps, env.clone(), buy_too_much_tokens.clone());
+            let response = execute(deps, env.clone(), info, buy_too_much_tokens.clone());
             let error = extract_error(response);
 
             assert!(error.contains(&format!(
@@ -1647,7 +1643,7 @@ mod tests {
                 max_tokens_amount
             )));
 
-            let buy_tokens_msg = HandleMsg::BuyTokens {
+            let buy_tokens_msg = ExecuteMsg::BuyTokens {
                 ido_id,
                 amount: Uint128::from(max_tokens_amount),
                 viewing_key: None,
@@ -1661,7 +1657,7 @@ mod tests {
             let initial_total_payment = user_info.total_payment;
             let initial_tokens_bought = user_info.total_tokens_bought;
 
-            let response = execute(deps, env.clone(), buy_tokens_msg.clone()).unwrap();
+            let response = execute(deps, env.clone(), info, buy_tokens_msg.clone()).unwrap();
             let data = response.data.unwrap();
 
             match from_binary(&data).unwrap() {
@@ -1715,14 +1711,14 @@ mod tests {
             let purchases_len = purchases.get_len(&deps.storage).unwrap();
             assert_eq!(purchases_len, (min_tier - tier + 1) as u32);
 
-            let buy_another_token = HandleMsg::BuyTokens {
+            let buy_another_token = ExecuteMsg::BuyTokens {
                 ido_id,
                 amount: Uint128::from(1u128),
                 viewing_key: None,
                 padding: None,
             };
 
-            let response = execute(deps, env.clone(), buy_another_token.clone());
+            let response = execute(deps, env.clone(), info, buy_another_token.clone());
             let error = extract_error(response);
 
             if tier == 1 {
@@ -1745,45 +1741,46 @@ mod tests {
         let msg = get_init_msg();
         let mut deps = initialize_with(msg).unwrap();
 
-        let unauthorized_user = HumanAddr::from("unauthorized");
-        let env = mock_env(unauthorized_user, &[]);
+        let info = mock_info("unauthorized", &[]);
+        let env = mock_env();
 
-        let address = HumanAddr::from("address");
-        let canonical_address = deps.api.canonical_address(&address).unwrap();
+        let address = Addr::from("address");
+        let addr_canonicalize = deps.api.addr_canonicalize(&address).unwrap();
 
-        let add_ido_whitelist_msg = HandleMsg::WhitelistAdd {
+        let add_ido_whitelist_msg = ExecuteMsg::WhitelistAdd {
             addresses: vec![address],
             ido_id: 0,
             padding: None,
         };
 
-        let response = execute(deps, env.clone(), add_ido_whitelist_msg.clone());
+        let response = execute(deps, env.clone(), info, add_ido_whitelist_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Not found"));
 
-        let ido_admin = HumanAddr::from("ido_admin");
-        let ido_admin_canonical = deps.api.canonical_address(&ido_admin).unwrap();
+        let ido_admin = Addr::from("ido_admin");
+        let ido_admin_canonical = deps.api.addr_canonicalize(&ido_admin).unwrap();
 
         let mut ido = Ido::default();
         ido.admin = ido_admin_canonical;
 
         ido.save(&mut deps.storage).unwrap();
-        let response = execute(deps, env, add_ido_whitelist_msg.clone());
+        let response = execute(deps, env, info, add_ido_whitelist_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Unauthorized"));
 
-        let env = mock_env(ido_admin, &[]);
-        execute(deps, env, add_ido_whitelist_msg).unwrap();
+        let info = mock_info(&ido_admin, &[]);
+        let env = mock_env();
+        execute(deps, env, info, add_ido_whitelist_msg).unwrap();
 
         let ido_whitelist = state::ido_whitelist(0);
         assert_eq!(ido_whitelist.get_len(&deps.storage), Ok(1));
         assert_eq!(
-            ido_whitelist.get(&deps.storage, &canonical_address),
+            ido_whitelist.get(&deps.storage, &addr_canonicalize),
             Some(true)
         );
 
         let whitelist_addresses = ido_whitelist.paging_keys(&deps.storage, 0, 100).unwrap();
-        assert_eq!(whitelist_addresses, vec![canonical_address]);
+        assert_eq!(whitelist_addresses, vec![addr_canonicalize]);
     }
 
     #[test]
@@ -1792,33 +1789,37 @@ mod tests {
         let start_ido_msg = start_ido_msg();
 
         let whitelist = match start_ido_msg {
-            HandleMsg::StartIdo {
+            ExecuteMsg::StartIdo {
                 whitelist: Whitelist::Empty { ref with },
                 ..
             } => with.as_ref().unwrap().clone(),
             _ => unreachable!(),
         };
 
-        let ido_admin = HumanAddr::from("admin");
-        let env = mock_env(ido_admin.clone(), &[]);
-        execute(deps, env, start_ido_msg).unwrap();
+        let ido_admin = Addr::from("admin");
 
-        let remove_whitelist_msg = HandleMsg::WhitelistRemove {
+        let info = mock_info(&ido_admin, &[]);
+        let env = mock_env();
+        execute(deps, env, info, start_ido_msg).unwrap();
+
+        let remove_whitelist_msg = ExecuteMsg::WhitelistRemove {
             addresses: whitelist[10..20].to_vec(),
             ido_id: 0,
             padding: None,
         };
 
-        let unauthorized_user = HumanAddr::from("unauthorized");
+        let unauthorized_user = Addr::from("unauthorized");
 
-        let env = mock_env(unauthorized_user, &[]);
-        let response = execute(deps, env, remove_whitelist_msg.clone());
+        let info = mock_info(&unauthorized_user, &[]);
+        let env = mock_env();
+        let response = execute(deps, env, info, remove_whitelist_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Unauthorized"));
 
-        let env = mock_env(ido_admin, &[]);
+        let info = mock_info(&ido_admin, &[]);
+        let env = mock_env();
 
-        let response = execute(deps, env, remove_whitelist_msg).unwrap();
+        let response = execute(deps, env, info, remove_whitelist_msg).unwrap();
 
         match from_binary(&response.data.unwrap()).unwrap() {
             HandleAnswer::WhitelistRemove { status } => {
@@ -1829,11 +1830,11 @@ mod tests {
 
         let ido_whitelist = state::ido_whitelist(0);
         for (index, address) in whitelist.iter().enumerate() {
-            let canonical_address = deps.api.canonical_address(address).unwrap();
+            let addr_canonicalize = deps.api.addr_canonicalize(address).unwrap();
             let in_whitelist = !(10..20).contains(&index);
 
             assert_eq!(
-                ido_whitelist.get(&deps.storage, &canonical_address),
+                ido_whitelist.get(&deps.storage, &addr_canonicalize),
                 Some(in_whitelist)
             );
         }
@@ -1870,15 +1871,15 @@ mod tests {
         let msg = get_init_msg();
         let mut deps = initialize_with(msg).unwrap();
 
-        let token_contract = HumanAddr::from("token_contract");
-        let canonical_token_contract = deps.api.canonical_address(&token_contract).unwrap();
+        let token_contract = Addr::from("token_contract");
+        let canonical_token_contract = deps.api.addr_canonicalize(&token_contract).unwrap();
 
         let mut ido = Ido::default();
         ido.token_contract = canonical_token_contract;
         let ido_id = ido.save(&mut deps.storage).unwrap();
 
-        let user = HumanAddr::from("user");
-        let canonical_user = deps.api.canonical_address(&user).unwrap();
+        let info = mock_info("user", &[]);
+        let canonical_user = deps.api.addr_canonicalize(&user).unwrap();
         let user_purchases = state::purchases(&canonical_user, ido_id);
         for purchase in purchases.iter() {
             user_purchases
@@ -1925,17 +1926,17 @@ mod tests {
         let purchases = generate_purchases(amount);
         let mut deps = prepare_for_receive_tokens(&purchases);
 
-        let user = HumanAddr::from("user");
-        let canonical_user = deps.api.canonical_address(&user).unwrap();
+        let info = mock_info("user", &[]);
+        let canonical_user = deps.api.addr_canonicalize(&user).unwrap();
 
         let user_info = state::user_info_in_ido(&canonical_user);
         let info = user_info.get(&deps.storage, &0).unwrap();
 
         let total_tokens_amount = info.total_tokens_bought;
-        let mut env = mock_env(user.clone(), &[]);
+        let mut env = mock_env();
         env.block.time = 0;
 
-        let recv_tokens_msg = HandleMsg::RecvTokens {
+        let recv_tokens_msg = ExecuteMsg::RecvTokens {
             ido_id: 0,
             start: None,
             limit: Some(amount as u32),
@@ -1946,7 +1947,7 @@ mod tests {
         let active_ido_list = state::active_ido_list(&canonical_user);
         assert!(active_ido_list.contains(&deps.storage, &0));
 
-        let response = execute(deps, env.clone(), recv_tokens_msg.clone());
+        let response = execute(deps, env.clone(), info, recv_tokens_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Nothing to receive"));
 
@@ -1959,7 +1960,7 @@ mod tests {
             .map(|p| p.tokens_amount)
             .sum();
 
-        let response = execute(deps, env.clone(), recv_tokens_msg.clone()).unwrap();
+        let response = execute(deps, env.clone(), info, recv_tokens_msg.clone()).unwrap();
         match from_binary(&response.data.unwrap()).unwrap() {
             HandleAnswer::RecvTokens {
                 amount,
@@ -2021,7 +2022,7 @@ mod tests {
 
         env.block.time = 1000;
 
-        let response = execute(deps, env, recv_tokens_msg).unwrap();
+        let response = execute(deps, env, info, recv_tokens_msg).unwrap();
         let recv_amount = total_tokens_amount - recv_amount;
 
         match from_binary(&response.data.unwrap()).unwrap() {
@@ -2082,16 +2083,16 @@ mod tests {
         let purchases = generate_purchases(amount);
         let mut deps = prepare_for_receive_tokens(&purchases);
 
-        let user = HumanAddr::from("user");
-        let canonical_user = deps.api.canonical_address(&user).unwrap();
+        let info = mock_info("user", &[]);
+        let canonical_user = deps.api.addr_canonicalize(&user).unwrap();
 
-        let mut env = mock_env(user.clone(), &[]);
+        let mut env = mock_env();
         env.block.time = 1000;
 
         let mut purchase_indices = (0..10).into_iter().collect::<Vec<_>>();
         purchase_indices.extend(&[17, 18, 19]);
 
-        let recv_tokens_msg = HandleMsg::RecvTokens {
+        let recv_tokens_msg = ExecuteMsg::RecvTokens {
             ido_id: 0,
             start: Some(4),
             limit: Some(10),
@@ -2105,7 +2106,7 @@ mod tests {
             .map(|p| p.tokens_amount)
             .sum();
 
-        let response = execute(deps, env, recv_tokens_msg).unwrap();
+        let response = execute(deps, env, info, recv_tokens_msg).unwrap();
         match from_binary(&response.data.unwrap()).unwrap() {
             HandleAnswer::RecvTokens {
                 amount,
@@ -2151,13 +2152,13 @@ mod tests {
         let msg = get_init_msg();
         let mut deps = initialize_with(msg).unwrap();
 
-        let unauthorized_user = HumanAddr::from("unauthorized");
-        let admin = HumanAddr::from("admin");
-        let ido_admin = HumanAddr::from("ido_admin");
-        let canonical_ido_admin = deps.api.canonical_address(&ido_admin).unwrap();
+        let unauthorized_user = Addr::from("unauthorized");
+        let admin = Addr::from("admin");
+        let ido_admin = Addr::from("ido_admin");
+        let canonical_ido_admin = deps.api.addr_canonicalize(&ido_admin).unwrap();
 
-        let token_contract = HumanAddr::from("token_contract");
-        let canonical_token_contract = deps.api.canonical_address(&token_contract).unwrap();
+        let token_contract = Addr::from("token_contract");
+        let canonical_token_contract = deps.api.addr_canonicalize(&token_contract).unwrap();
 
         let mut ido = Ido::default();
         ido.start_time = 100;
@@ -2171,35 +2172,37 @@ mod tests {
         let withdraw_amount = ido.total_tokens_amount - ido.sold_amount;
         let withdraw_payment_amount = ido.sold_amount.checked_div(ido.price).unwrap();
         let ido_id = ido.save(&mut deps.storage).unwrap();
-        let withdraw_msg = HandleMsg::Withdraw {
+        let withdraw_msg = ExecuteMsg::Withdraw {
             ido_id,
             padding: None,
         };
 
-        let env = mock_env(unauthorized_user, &[]);
-        let response = execute(deps, env, withdraw_msg.clone());
+        let info = mock_info(unauthorized_user, &[]);
+        let env = mock_env();
+        let response = execute(deps, env, info, withdraw_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Unauthorized"));
 
-        let env = mock_env(admin, &[]);
-        let response = execute(deps, env, withdraw_msg.clone());
+        let env = mock_env();
+        let response = execute(deps, env, info, withdraw_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("Unauthorized"));
 
-        let mut env = mock_env(ido_admin.clone(), &[]);
+        let info = mock_info(&admin, &[]);
+        let mut env = mock_env();
 
         env.block.time = 0;
-        let response = execute(deps, env.clone(), withdraw_msg.clone());
+        let response = execute(deps, env.clone(), info, withdraw_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("IDO is not finished yet"));
 
         env.block.time = 500;
-        let response = execute(deps, env.clone(), withdraw_msg.clone());
+        let response = execute(deps, env.clone(), info, withdraw_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("IDO is not finished yet"));
 
         env.block.time = 1000;
-        let response = execute(deps, env.clone(), withdraw_msg.clone()).unwrap();
+        let response = execute(deps, env.clone(), info, withdraw_msg.clone()).unwrap();
         match from_binary(&response.data.unwrap()).unwrap() {
             HandleAnswer::Withdraw {
                 ido_amount,
@@ -2227,7 +2230,7 @@ mod tests {
         assert_eq!(response.messages.len(), 2);
         assert_eq!(response.messages[0], expected_message);
 
-        let response = execute(deps, env, withdraw_msg);
+        let response = execute(deps, env, info, withdraw_msg);
         let error = extract_error(response);
         assert!(error.contains("Already withdrawn"));
     }

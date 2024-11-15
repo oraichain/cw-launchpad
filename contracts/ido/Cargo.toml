@@ -1,7 +1,12 @@
 [package]
 name = "ido"
-version = "0.1.0"
+version = { workspace = true }
+authors = { workspace = true }
 edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+homepage = { workspace = true }
+documentation = { workspace = true }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -12,10 +17,10 @@ test-tube = []
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["staking"] }
 cosmwasm-schema = { workspace = true }
+cw-storage-plus = { workspace = true }
 
 secret-toolkit-snip721 = "0.3.0"
 secret-toolkit-snip20 = "0.3.0"
-secret-toolkit-storage = "0.5.0"
 secret-toolkit-utils = "0.3.1"
 
 

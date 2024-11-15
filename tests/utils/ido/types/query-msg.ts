@@ -14,14 +14,14 @@ export type IdoInfo = {
 
 export type InWhitelist = {
   in_whitelist: {
-    address: HumanAddr;
+    address: Addr;
     ido_id: number;
   };
 };
 
 export type IdoListOwnedBy = {
   ido_list_owned_by: {
-    address: HumanAddr;
+    address: Addr;
     limit: number;
     start: number;
   };
@@ -29,7 +29,7 @@ export type IdoListOwnedBy = {
 
 export type Purchases = {
   purchases: {
-    address: HumanAddr;
+    address: Addr;
     ido_id: number;
     limit: number;
     start: number;
@@ -38,7 +38,7 @@ export type Purchases = {
 
 export type ArchivedPurchases = {
   archived_purchases: {
-    address: HumanAddr;
+    address: Addr;
     ido_id: number;
     limit: number;
     start: number;
@@ -47,9 +47,9 @@ export type ArchivedPurchases = {
 
 export type UserInfo = {
   user_info: {
-    address: HumanAddr;
+    address: Addr;
     ido_id?: number | null;
   };
 };
 
-export type HumanAddr = string;
+export type Addr = string;

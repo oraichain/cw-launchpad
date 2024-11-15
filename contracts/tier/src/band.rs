@@ -1,4 +1,4 @@
-use cosmwasm_std::{HumanAddr, Querier, StdResult, Uint128};
+use cosmwasm_std::{Addr, Querier, StdResult, Uint128};
 use secret_toolkit_utils::Query;
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +30,7 @@ impl BandProtocol {
     pub const ONE_USD: u128 = 1_000_000_000_000_000_000;
 
     #[cfg(not(test))]
-    pub fn new<Q: Querier>(querier: &Q, contract: HumanAddr, code_hash: String) -> StdResult<Self> {
+    pub fn new<Q: Querier>(querier: &Q, contract: Addr, code_hash: String) -> StdResult<Self> {
         let scrt_per_usd = Self::scrt_price_in_usd(querier, contract, code_hash)?;
         Ok(BandProtocol { scrt_per_usd })
     }
@@ -38,7 +38,7 @@ impl BandProtocol {
     #[cfg(test)]
     pub fn new<Q: Querier>(
         _querier: &Q,
-        _contract: HumanAddr,
+        _contract: Addr,
         _code_hash: String,
     ) -> StdResult<Self> {
         Ok(BandProtocol {
@@ -67,7 +67,7 @@ impl BandProtocol {
     #[allow(dead_code)]
     fn scrt_price_in_usd<Q: Querier>(
         querier: &Q,
-        contract: HumanAddr,
+        contract: Addr,
         code_hash: String,
     ) -> StdResult<u128> {
         let query_data = QueryMsg::GetReferenceData {

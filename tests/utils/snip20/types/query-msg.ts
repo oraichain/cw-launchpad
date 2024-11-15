@@ -17,21 +17,21 @@ export type ExchangeRate = {
 export type Allowance = {
   allowance: {
     key: string;
-    owner: HumanAddr;
-    spender: HumanAddr;
+    owner: Addr;
+    spender: Addr;
   };
 };
 
 export type Balance = {
   balance: {
-    address: HumanAddr;
+    address: Addr;
     key: string;
   };
 };
 
 export type TransferHistory = {
   transfer_history: {
-    address: HumanAddr;
+    address: Addr;
     key: string;
     page?: number | null;
     page_size: number;
@@ -40,7 +40,7 @@ export type TransferHistory = {
 
 export type TransactionHistory = {
   transaction_history: {
-    address: HumanAddr;
+    address: Addr;
     key: string;
     page?: number | null;
     page_size: number;
@@ -58,8 +58,8 @@ export type WithPermit = {
   };
 };
 
-export type HumanAddr = string;
-export type Permission = "allowance" | "balance" | "history" | "owner";
+export type Addr = string;
+export type Permission = 'allowance' | 'balance' | 'history' | 'owner';
 
 /**
  * Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.
@@ -69,26 +69,26 @@ export type Permission = "allowance" | "balance" | "history" | "owner";
 export type Binary = string;
 export type QueryWithPermit =
   | {
-    allowance: {
-      owner: HumanAddr;
-      spender: HumanAddr;
-    };
-  }
+      allowance: {
+        owner: Addr;
+        spender: Addr;
+      };
+    }
   | {
-    balance: Record<string, never>;
-  }
+      balance: Record<string, never>;
+    }
   | {
-    transfer_history: {
-      page?: number | null;
-      page_size: number;
-    };
-  }
+      transfer_history: {
+        page?: number | null;
+        page_size: number;
+      };
+    }
   | {
-    transaction_history: {
-      page?: number | null;
-      page_size: number;
+      transaction_history: {
+        page?: number | null;
+        page_size: number;
+      };
     };
-  };
 
 export interface Permit {
   params: PermitParams;
@@ -96,7 +96,7 @@ export interface Permit {
 }
 
 export interface PermitParams {
-  allowed_tokens: HumanAddr[];
+  allowed_tokens: Addr[];
   chain_id: string;
   permissions: Permission[];
   permit_name: string;

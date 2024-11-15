@@ -7,7 +7,7 @@ export type MintNft = {
     /**
      * optional owner address. if omitted, owned by the message sender
      */
-    owner?: HumanAddr | null;
+    owner?: Addr | null;
     /**
      * optional message length padding
      */
@@ -65,7 +65,7 @@ export type MintNftClones = {
     /**
      * optional owner address. if omitted, owned by the message sender
      */
-    owner?: HumanAddr | null;
+    owner?: Addr | null;
     /**
      * optional message length padding
      */
@@ -179,7 +179,7 @@ export type SetWhitelistedApproval = {
     /**
      * address being granted/revoked permission
      */
-    address: HumanAddr;
+    address: Addr;
     /**
      * optional expiration
      */
@@ -220,7 +220,7 @@ export type Approve = {
     /**
      * address being granted the permission
      */
-    spender: HumanAddr;
+    spender: Addr;
     /**
      * id of the token that the spender can transfer
      */
@@ -237,7 +237,7 @@ export type Revoke = {
     /**
      * address whose permission is revoked
      */
-    spender: HumanAddr;
+    spender: Addr;
     /**
      * id of the token that the spender can no longer transfer
      */
@@ -254,7 +254,7 @@ export type ApproveAll = {
     /**
      * address being granted permission to transfer
      */
-    operator: HumanAddr;
+    operator: Addr;
     /**
      * optional message length padding
      */
@@ -267,7 +267,7 @@ export type RevokeAll = {
     /**
      * address whose permissions are revoked
      */
-    operator: HumanAddr;
+    operator: Addr;
     /**
      * optional message length padding
      */
@@ -288,7 +288,7 @@ export type TransferNft = {
     /**
      * recipient of the transfer
      */
-    recipient: HumanAddr;
+    recipient: Addr;
     /**
      * id of the token to transfer
      */
@@ -314,7 +314,7 @@ export type SendNft = {
     /**
      * address to send the token to
      */
-    contract: HumanAddr;
+    contract: Addr;
     /**
      * optional memo for the tx
      */
@@ -429,7 +429,7 @@ export type AddMinters = {
     /**
      * list of addresses that can now mint
      */
-    minters: HumanAddr[];
+    minters: Addr[];
     /**
      * optional message length padding
      */
@@ -442,7 +442,7 @@ export type RemoveMinters = {
     /**
      * list of addresses no longer allowed to mint
      */
-    minters: HumanAddr[];
+    minters: Addr[];
     /**
      * optional message length padding
      */
@@ -455,7 +455,7 @@ export type SetMinters = {
     /**
      * list of addresses with minting authority
      */
-    minters: HumanAddr[];
+    minters: Addr[];
     /**
      * optional message length padding
      */
@@ -468,7 +468,7 @@ export type ChangeAdmin = {
     /**
      * address with admin authority
      */
-    address: HumanAddr;
+    address: Addr;
     /**
      * optional message length padding
      */
@@ -502,25 +502,25 @@ export type RevokePermit = {
   };
 };
 
-export type HumanAddr = string;
+export type Addr = string;
 
 /**
  * at the given point in time and after, Expiration will be considered expired
  */
 export type Expiration =
-  | "never"
+  | 'never'
   | {
-    at_height: number;
-  }
+      at_height: number;
+    }
   | {
-    at_time: number;
-  };
+      at_time: number;
+    };
 
 /**
  * permission access level
  */
-export type AccessLevel = "approve_token" | "all" | "revoke_token" | "none";
-export type ContractStatus = "normal" | "stop_transactions" | "stop_all";
+export type AccessLevel = 'approve_token' | 'all' | 'revoke_token' | 'none';
+export type ContractStatus = 'normal' | 'stop_transactions' | 'stop_all';
 
 /**
  * Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.
@@ -680,7 +680,7 @@ export interface Royalty {
   /**
    * address to send royalties to
    */
-  recipient: HumanAddr;
+  recipient: Addr;
 }
 
 /**
@@ -712,7 +712,7 @@ export interface Mint {
   /**
    * optional owner address, owned by the minter otherwise
    */
-  owner?: HumanAddr | null;
+  owner?: Addr | null;
   /**
    * optional private metadata that can only be seen by owner and whitelist
    */
@@ -750,7 +750,7 @@ export interface Transfer {
   /**
    * recipient of the transferred tokens
    */
-  recipient: HumanAddr;
+  recipient: Addr;
   /**
    * tokens being transferred
    */
@@ -778,7 +778,7 @@ export interface Send {
   /**
    * recipient of the sent tokens
    */
-  contract: HumanAddr;
+  contract: Addr;
   /**
    * optional memo for the tx
    */

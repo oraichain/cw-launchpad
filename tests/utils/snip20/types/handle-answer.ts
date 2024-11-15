@@ -61,16 +61,16 @@ export type SetViewingKey = {
 export type IncreaseAllowance = {
   increase_allowance: {
     allowance: Uint128;
-    owner: HumanAddr;
-    spender: HumanAddr;
+    owner: Addr;
+    spender: Addr;
   };
 };
 
 export type DecreaseAllowance = {
   decrease_allowance: {
     allowance: Uint128;
-    owner: HumanAddr;
-    spender: HumanAddr;
+    owner: Addr;
+    spender: Addr;
   };
 };
 
@@ -158,7 +158,7 @@ export type RevokePermit = {
   };
 };
 
-export type ResponseStatus = "success" | "failure";
+export type ResponseStatus = 'success' | 'failure';
 export type ViewingKey = string;
 export type Uint128 = string;
-export type HumanAddr = string;
+export type Addr = string;

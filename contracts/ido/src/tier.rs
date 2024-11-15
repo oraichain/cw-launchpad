@@ -1,7 +1,7 @@
 #[cfg(not(test))]
 mod query {
     use crate::{contract::BLOCK_SIZE, msg::ContractStatus, state::Config};
-    use cosmwasm_std::{Api, Extern, HumanAddr, Querier, StdError, StdResult, Storage, Uint128};
+    use cosmwasm_std::{Addr, Api, Extern, Querier, StdError, StdResult, Storage, Uint128};
     use secret_toolkit_snip721::{
         all_nft_info_query, private_metadata_query, tokens_query, Extension, Metadata, ViewerInfo,
     };
@@ -12,7 +12,7 @@ mod query {
     #[serde(rename_all = "snake_case")]
     pub enum TierContractQuery {
         Config {},
-        UserInfo { address: HumanAddr },
+        UserInfo { address: Addr },
     }
 
     impl Query for TierContractQuery {
@@ -26,10 +26,10 @@ mod query {
             tier: u8,
         },
         Config {
-            admin: HumanAddr,
-            validator: HumanAddr,
+            admin: Addr,
+            validator: Addr,
             status: ContractStatus,
-            band_oracle: HumanAddr,
+            band_oracle: Addr,
             band_code_hash: String,
             usd_deposits: Vec<Uint128>,
             min_tier: u8,
@@ -66,9 +66,9 @@ mod query {
         None
     }
 
-    pub fn get_tier_from_nft_contract<S: Storage, A: Api, Q: Querier>(
-        deps: &Extern<S, A, Q>,
-        address: &HumanAddr,
+    pub fn get_tier_from_nft_contract(
+        deps: Deps,
+        address: &Addr,
         config: &Config,
         viewing_key: String,
     ) -> StdResult<Option<u8>> {
@@ -136,11 +136,7 @@ mod query {
         return Ok(Some(result_tier));
     }
 
-    fn get_tier_from_tier_contract<S: Storage, A: Api, Q: Querier>(
-        deps: &Extern<S, A, Q>,
-        address: HumanAddr,
-        config: &Config,
-    ) -> StdResult<u8> {
+    fn get_tier_from_tier_contract(deps: Deps, address: Addr, config: &Config) -> StdResult<u8> {
         let tier_contract = deps.api.human_address(&config.tier_contract)?;
         let user_info = TierContractQuery::UserInfo { address };
 
@@ -155,11 +151,7 @@ mod query {
         }
     }
 
-    pub fn get_tier<S: Storage, A: Api, Q: Querier>(
-        deps: &Extern<S, A, Q>,
-        address: HumanAddr,
-        viewing_key: Option<String>,
-    ) -> StdResult<u8> {
+    pub fn get_tier(deps: Deps, address: Addr, viewing_key: Option<String>) -> StdResult<u8> {
         let config = Config::load(&deps.storage)?;
 
         let from_nft_contract = viewing_key
@@ -176,10 +168,7 @@ mod query {
         Ok(tier)
     }
 
-    pub fn get_min_tier<S: Storage, A: Api, Q: Querier>(
-        deps: &Extern<S, A, Q>,
-        config: &Config,
-    ) -> StdResult<u8> {
+    pub fn get_min_tier(deps: Deps, config: &Config) -> StdResult<u8> {
         let tier_contract = deps.api.human_address(&config.tier_contract)?;
         let user_info = TierContractQuery::Config {};
 
@@ -198,7 +187,7 @@ mod query {
 #[cfg(test)]
 pub mod manual {
     use crate::state::Config;
-    use cosmwasm_std::{Api, Extern, HumanAddr, Querier, StdResult, Storage};
+    use cosmwasm_std::{Addr, Api, Deps, Extern, Querier, StdResult, Storage};
     use std::sync::Mutex;
 
     static TIER: Mutex<u8> = Mutex::new(0);
@@ -214,26 +203,19 @@ pub mod manual {
         *tier_lock = tier;
     }
 
-    pub fn get_tier<S: Storage, A: Api, Q: Querier>(
-        _deps: &Extern<S, A, Q>,
-        _address: HumanAddr,
-        _viewing_key: Option<String>,
-    ) -> StdResult<u8> {
+    pub fn get_tier(_deps: Deps, _address: Addr, _viewing_key: Option<String>) -> StdResult<u8> {
         let tier_lock = TIER.lock().unwrap();
         Ok(*tier_lock)
     }
 
-    pub fn get_min_tier<S: Storage, A: Api, Q: Querier>(
-        _deps: &Extern<S, A, Q>,
-        _config: &Config,
-    ) -> StdResult<u8> {
+    pub fn get_min_tier(_deps: Deps, _config: &Config) -> StdResult<u8> {
         let tier_lock = MIN_TIER.lock().unwrap();
         Ok(*tier_lock)
     }
 
-    pub fn get_tier_from_nft_contract<S: Storage, A: Api, Q: Querier>(
-        _deps: &Extern<S, A, Q>,
-        _address: &HumanAddr,
+    pub fn get_tier_from_nft_contract(
+        _deps: Deps,
+        _address: &Addr,
         _config: &Config,
         _viewing_key: String,
     ) -> StdResult<Option<u8>> {
@@ -263,12 +245,12 @@ pub use manual::get_tier_from_nft_contract;
 #[cfg(test)]
 mod tests {
     use super::manual::{get_tier, set_tier};
-    use cosmwasm_std::{testing::mock_dependencies, HumanAddr};
+    use cosmwasm_std::{testing::mock_dependencies, Addr};
 
     #[test]
     fn manual_tier() {
-        let deps = mock_dependencies(20, &[]);
-        let address = HumanAddr::from("address");
+        let deps = mock_dependencies();
+        let address = Addr::from("address");
         let tier = get_tier(&deps, address.clone(), None).unwrap();
 
         for i in 1..=4 {

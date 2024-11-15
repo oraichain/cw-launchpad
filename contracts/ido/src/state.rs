@@ -1,6 +1,6 @@
 use crate::msg::{PaymentMethod, PurchaseAnswer, QueryAnswer};
-use cosmwasm_std::{Api, CanonicalAddr, ReadonlyStorage, StdResult, Storage, Uint128};
-use secret_toolkit_storage::{AppendStore, DequeStore, Item, Keymap};
+use cosmwasm_std::{Api, CanonicalAddr, StdResult, Storage, Uint128};
+use cw_storage_plus::{AppendStore, DequeStore, Item, Keymap};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 
@@ -56,11 +56,11 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load<S: ReadonlyStorage>(storage: &S) -> StdResult<Self> {
+    pub fn load(storage: &dyn Storage) -> StdResult<Self> {
         CONFIG_KEY.load(storage)
     }
 
-    pub fn save<S: Storage>(&self, storage: &mut S) -> StdResult<()> {
+    pub fn save(&self, storage: &mut dyn Storage) -> StdResult<()> {
         CONFIG_KEY.save(storage, self)
     }
 
@@ -247,7 +247,7 @@ impl Ido {
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::{testing::mock_dependencies, Api, HumanAddr};
+    use cosmwasm_std::{testing::mock_dependencies, Addr, Api};
 
     #[test]
     fn ido() {
@@ -259,7 +259,7 @@ mod test {
         let loaded_ido = Ido::load(&storage, 0);
         assert!(loaded_ido.is_err());
 
-        let token_address = HumanAddr::from("token");
+        let token_address = Addr::from("token");
         let canonical_token_address = deps.api.canonical_address(&token_address).unwrap();
 
         let mut new_ido = Ido {

@@ -2,12 +2,9 @@ use crate::{
     msg::ContractStatus,
     state::{self, Config, Ido},
 };
-use cosmwasm_std::{
-    Addr, Api, Coin, DepsMut, Extern, HumanAddr, Querier, ReadonlyStorage, StdError, StdResult,
-    Storage,
-};
+use cosmwasm_std::{Addr, Api, Coin, DepsMut, Querier, StdError, StdResult, Storage};
 
-pub fn assert_contract_active<S: ReadonlyStorage>(storage: &S) -> StdResult<()> {
+pub fn assert_contract_active(storage: &dyn Storage) -> StdResult<()> {
     let config = Config::load(storage)?;
     let active_status = ContractStatus::Active as u8;
 
@@ -29,7 +26,7 @@ pub fn assert_admin(deps: DepsMut, address: &Addr) -> StdResult<()> {
     Ok(())
 }
 
-pub fn assert_ido_admin(deps: DepsMut, address: &HumanAddr, ido_id: u32) -> StdResult<()> {
+pub fn assert_ido_admin(deps: DepsMut, address: &Addr, ido_id: u32) -> StdResult<()> {
     let canonical_admin = deps.api.canonical_address(address)?;
     let ido = Ido::load(&deps.storage, ido_id)?;
 
@@ -40,7 +37,7 @@ pub fn assert_ido_admin(deps: DepsMut, address: &HumanAddr, ido_id: u32) -> StdR
     Ok(())
 }
 
-pub fn in_whitelist(deps: DepsMut, address: &HumanAddr, ido_id: u32) -> StdResult<bool> {
+pub fn in_whitelist(deps: DepsMut, address: &Addr, ido_id: u32) -> StdResult<bool> {
     let canonical_address = deps.api.canonical_address(address)?;
 
     let ido_whitelist = state::ido_whitelist(ido_id);
@@ -72,7 +69,7 @@ pub fn sent_funds(coins: &[Coin]) -> StdResult<u128> {
 #[cfg(test)]
 mod tests {
     use crate::state::{self, Ido};
-    use cosmwasm_std::{testing::mock_dependencies, Api, HumanAddr};
+    use cosmwasm_std::{testing::mock_dependencies, Addr, Api};
 
     #[test]
     fn in_whitelist() {
@@ -83,9 +80,9 @@ mod tests {
         ido.save(&mut deps.storage).unwrap();
         let ido_id = ido.id();
 
-        let address = HumanAddr::from("address");
-        let whitelisted = HumanAddr::from("whitelisted");
-        let blacklisted = HumanAddr::from("blacklisted");
+        let address = Addr::from("address");
+        let whitelisted = Addr::from("whitelisted");
+        let blacklisted = Addr::from("blacklisted");
         let canonical_whitelisted = deps.api.canonical_address(&whitelisted).unwrap();
         let canonical_blacklisted = deps.api.canonical_address(&blacklisted).unwrap();
 

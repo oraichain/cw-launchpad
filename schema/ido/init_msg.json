@@ -1,19 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "InitMsg",
+  "title": "InstantiateMsg",
   "type": "object",
-  "required": [
-    "lock_periods",
-    "nft_contract",
-    "nft_contract_hash",
-    "tier_contract",
-    "tier_contract_hash"
-  ],
+  "required": ["lock_periods", "nft_contract", "nft_contract_hash", "tier_contract", "tier_contract_hash"],
   "properties": {
     "admin": {
       "anyOf": [
         {
-          "$ref": "#/definitions/HumanAddr"
+          "$ref": "#/definitions/Addr"
         },
         {
           "type": "null"
@@ -29,20 +23,20 @@
       }
     },
     "nft_contract": {
-      "$ref": "#/definitions/HumanAddr"
+      "$ref": "#/definitions/Addr"
     },
     "nft_contract_hash": {
       "type": "string"
     },
     "tier_contract": {
-      "$ref": "#/definitions/HumanAddr"
+      "$ref": "#/definitions/Addr"
     },
     "tier_contract_hash": {
       "type": "string"
     }
   },
   "definitions": {
-    "HumanAddr": {
+    "Addr": {
       "type": "string"
     }
   }

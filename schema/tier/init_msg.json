@@ -1,18 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "InitMsg",
+  "title": "InstantiateMsg",
   "type": "object",
-  "required": [
-    "band_code_hash",
-    "band_oracle",
-    "deposits",
-    "validator"
-  ],
+  "required": ["band_code_hash", "band_oracle", "deposits", "validator"],
   "properties": {
     "admin": {
       "anyOf": [
         {
-          "$ref": "#/definitions/HumanAddr"
+          "$ref": "#/definitions/Addr"
         },
         {
           "type": "null"
@@ -23,7 +18,7 @@
       "type": "string"
     },
     "band_oracle": {
-      "$ref": "#/definitions/HumanAddr"
+      "$ref": "#/definitions/Addr"
     },
     "deposits": {
       "type": "array",
@@ -32,11 +27,11 @@
       }
     },
     "validator": {
-      "$ref": "#/definitions/HumanAddr"
+      "$ref": "#/definitions/Addr"
     }
   },
   "definitions": {
-    "HumanAddr": {
+    "Addr": {
       "type": "string"
     },
     "Uint128": {

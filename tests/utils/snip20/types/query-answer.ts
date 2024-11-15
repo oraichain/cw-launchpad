@@ -34,8 +34,8 @@ export type Allowance = {
   allowance: {
     allowance: Uint128;
     expiration?: number | null;
-    owner: HumanAddr;
-    spender: HumanAddr;
+    owner: Addr;
+    spender: Addr;
   };
 };
 
@@ -67,54 +67,51 @@ export type ViewingKeyError = {
 
 export type Minters = {
   minters: {
-    minters: HumanAddr[];
+    minters: Addr[];
   };
 };
 
 export type Uint128 = string;
-export type HumanAddr = string;
+export type Addr = string;
 
-export type ContractStatusLevel =
-  | "normal_run"
-  | "stop_all_but_redeems"
-  | "stop_all";
+export type ContractStatusLevel = 'normal_run' | 'stop_all_but_redeems' | 'stop_all';
 
 export type TxAction =
   | {
-    transfer: {
-      from: HumanAddr;
-      recipient: HumanAddr;
-      sender: HumanAddr;
+      transfer: {
+        from: Addr;
+        recipient: Addr;
+        sender: Addr;
+      };
+    }
+  | {
+      mint: {
+        minter: Addr;
+        recipient: Addr;
+      };
+    }
+  | {
+      burn: {
+        burner: Addr;
+        owner: Addr;
+      };
+    }
+  | {
+      deposit: Record<string, never>;
+    }
+  | {
+      redeem: Record<string, never>;
     };
-  }
-  | {
-    mint: {
-      minter: HumanAddr;
-      recipient: HumanAddr;
-    };
-  }
-  | {
-    burn: {
-      burner: HumanAddr;
-      owner: HumanAddr;
-    };
-  }
-  | {
-    deposit: Record<string, never>;
-  }
-  | {
-    redeem: Record<string, never>;
-  };
 
 export interface Tx {
   block_height?: number | null;
   block_time?: number | null;
   coins: Coin;
-  from: HumanAddr;
+  from: Addr;
   id: number;
   memo?: string | null;
-  receiver: HumanAddr;
-  sender: HumanAddr;
+  receiver: Addr;
+  sender: Addr;
 }
 
 export interface Coin {

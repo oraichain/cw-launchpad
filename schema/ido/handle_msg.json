@@ -1,27 +1,20 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "HandleMsg",
+  "title": "ExecuteMsg",
   "anyOf": [
     {
       "type": "object",
-      "required": [
-        "change_admin"
-      ],
+      "required": ["change_admin"],
       "properties": {
         "change_admin": {
           "type": "object",
-          "required": [
-            "admin"
-          ],
+          "required": ["admin"],
           "properties": {
             "admin": {
-              "$ref": "#/definitions/HumanAddr"
+              "$ref": "#/definitions/Addr"
             },
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             }
           }
         }
@@ -29,21 +22,14 @@
     },
     {
       "type": "object",
-      "required": [
-        "change_status"
-      ],
+      "required": ["change_status"],
       "properties": {
         "change_status": {
           "type": "object",
-          "required": [
-            "status"
-          ],
+          "required": ["status"],
           "properties": {
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             "status": {
               "$ref": "#/definitions/ContractStatus"
@@ -54,23 +40,11 @@
     },
     {
       "type": "object",
-      "required": [
-        "start_ido"
-      ],
+      "required": ["start_ido"],
       "properties": {
         "start_ido": {
           "type": "object",
-          "required": [
-            "end_time",
-            "payment",
-            "price",
-            "start_time",
-            "token_contract",
-            "token_contract_hash",
-            "tokens_per_tier",
-            "total_amount",
-            "whitelist"
-          ],
+          "required": ["end_time", "payment", "price", "start_time", "token_contract", "token_contract_hash", "tokens_per_tier", "total_amount", "whitelist"],
           "properties": {
             "end_time": {
               "type": "integer",
@@ -78,10 +52,7 @@
               "minimum": 0.0
             },
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             "payment": {
               "$ref": "#/definitions/PaymentMethod"
@@ -95,7 +66,7 @@
               "minimum": 0.0
             },
             "token_contract": {
-              "$ref": "#/definitions/HumanAddr"
+              "$ref": "#/definitions/Addr"
             },
             "token_contract_hash": {
               "type": "string"
@@ -118,21 +89,16 @@
     },
     {
       "type": "object",
-      "required": [
-        "whitelist_add"
-      ],
+      "required": ["whitelist_add"],
       "properties": {
         "whitelist_add": {
           "type": "object",
-          "required": [
-            "addresses",
-            "ido_id"
-          ],
+          "required": ["addresses", "ido_id"],
           "properties": {
             "addresses": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/HumanAddr"
+                "$ref": "#/definitions/Addr"
               }
             },
             "ido_id": {
@@ -141,10 +107,7 @@
               "minimum": 0.0
             },
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             }
           }
         }
@@ -152,21 +115,16 @@
     },
     {
       "type": "object",
-      "required": [
-        "whitelist_remove"
-      ],
+      "required": ["whitelist_remove"],
       "properties": {
         "whitelist_remove": {
           "type": "object",
-          "required": [
-            "addresses",
-            "ido_id"
-          ],
+          "required": ["addresses", "ido_id"],
           "properties": {
             "addresses": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/HumanAddr"
+                "$ref": "#/definitions/Addr"
               }
             },
             "ido_id": {
@@ -175,10 +133,7 @@
               "minimum": 0.0
             },
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             }
           }
         }
@@ -186,16 +141,11 @@
     },
     {
       "type": "object",
-      "required": [
-        "buy_tokens"
-      ],
+      "required": ["buy_tokens"],
       "properties": {
         "buy_tokens": {
           "type": "object",
-          "required": [
-            "amount",
-            "ido_id"
-          ],
+          "required": ["amount", "ido_id"],
           "properties": {
             "amount": {
               "$ref": "#/definitions/Uint128"
@@ -206,10 +156,7 @@
               "minimum": 0.0
             },
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             "token": {
               "anyOf": [
@@ -227,15 +174,11 @@
     },
     {
       "type": "object",
-      "required": [
-        "recv_tokens"
-      ],
+      "required": ["recv_tokens"],
       "properties": {
         "recv_tokens": {
           "type": "object",
-          "required": [
-            "ido_id"
-          ],
+          "required": ["ido_id"],
           "properties": {
             "ido_id": {
               "type": "integer",
@@ -243,24 +186,15 @@
               "minimum": 0.0
             },
             "limit": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": ["integer", "null"],
               "format": "uint32",
               "minimum": 0.0
             },
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             },
             "purchase_indices": {
-              "type": [
-                "array",
-                "null"
-              ],
+              "type": ["array", "null"],
               "items": {
                 "type": "integer",
                 "format": "uint32",
@@ -268,10 +202,7 @@
               }
             },
             "start": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": ["integer", "null"],
               "format": "uint32",
               "minimum": 0.0
             }
@@ -281,15 +212,11 @@
     },
     {
       "type": "object",
-      "required": [
-        "withdraw"
-      ],
+      "required": ["withdraw"],
       "properties": {
         "withdraw": {
           "type": "object",
-          "required": [
-            "ido_id"
-          ],
+          "required": ["ido_id"],
           "properties": {
             "ido_id": {
               "type": "integer",
@@ -297,10 +224,7 @@
               "minimum": 0.0
             },
             "padding": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": ["string", "null"]
             }
           }
         }
@@ -310,20 +234,14 @@
   "definitions": {
     "ContractStatus": {
       "type": "string",
-      "enum": [
-        "active",
-        "stopped"
-      ]
+      "enum": ["active", "stopped"]
     },
-    "HumanAddr": {
+    "Addr": {
       "type": "string"
     },
     "NftToken": {
       "type": "object",
-      "required": [
-        "token_id",
-        "viewing_key"
-      ],
+      "required": ["token_id", "viewing_key"],
       "properties": {
         "token_id": {
           "type": "string"
@@ -337,28 +255,21 @@
       "anyOf": [
         {
           "type": "string",
-          "enum": [
-            "native"
-          ]
+          "enum": ["native"]
         },
         {
           "type": "object",
-          "required": [
-            "token"
-          ],
+          "required": ["token"],
           "properties": {
             "token": {
               "type": "object",
-              "required": [
-                "code_hash",
-                "contract"
-              ],
+              "required": ["code_hash", "contract"],
               "properties": {
                 "code_hash": {
                   "type": "string"
                 },
                 "contract": {
-                  "$ref": "#/definitions/HumanAddr"
+                  "$ref": "#/definitions/Addr"
                 }
               }
             }
@@ -373,20 +284,15 @@
       "anyOf": [
         {
           "type": "object",
-          "required": [
-            "empty"
-          ],
+          "required": ["empty"],
           "properties": {
             "empty": {
               "type": "object",
               "properties": {
                 "with": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
-                    "$ref": "#/definitions/HumanAddr"
+                    "$ref": "#/definitions/Addr"
                   }
                 }
               }
@@ -395,20 +301,15 @@
         },
         {
           "type": "object",
-          "required": [
-            "shared"
-          ],
+          "required": ["shared"],
           "properties": {
             "shared": {
               "type": "object",
               "properties": {
                 "with_blocked": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
+                  "type": ["array", "null"],
                   "items": {
-                    "$ref": "#/definitions/HumanAddr"
+                    "$ref": "#/definitions/Addr"
                   }
                 }
               }

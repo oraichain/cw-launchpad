@@ -124,7 +124,7 @@ export type TokenApprovals = {
 
 export type InventoryApprovals = {
   inventory_approvals: {
-    address: HumanAddr;
+    address: Addr;
     /**
      * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
      */
@@ -142,7 +142,7 @@ export type ApprovedForAll = {
      * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
      */
     include_expired?: boolean | null;
-    owner: HumanAddr;
+    owner: Addr;
     /**
      * optional viewing key to authenticate this query.  It is "optional" only in the sense that a CW721 query does not have this field.  However, not providing the key will always result in an empty list
      */
@@ -156,7 +156,7 @@ export type Tokens = {
      * optional number of token ids to display
      */
     limit?: number | null;
-    owner: HumanAddr;
+    owner: Addr;
     /**
      * paginate by providing the last token_id received in the previous query
      */
@@ -164,7 +164,7 @@ export type Tokens = {
     /**
      * optional address of the querier if different from the owner
      */
-    viewer?: HumanAddr | null;
+    viewer?: Addr | null;
     /**
      * optional viewing key
      */
@@ -174,11 +174,11 @@ export type Tokens = {
 
 export type NumTokensOfOwner = {
   num_tokens_of_owner: {
-    owner: HumanAddr;
+    owner: Addr;
     /**
      * optional address of the querier if different from the owner
      */
-    viewer?: HumanAddr | null;
+    viewer?: Addr | null;
     /**
      * optional viewing key
      */
@@ -211,7 +211,7 @@ export type verifyTransferApproval = {
     /**
      * address that has approval
      */
-    address: HumanAddr;
+    address: Addr;
     /**
      * list of tokens to verify approval for
      */
@@ -225,7 +225,7 @@ export type verifyTransferApproval = {
 
 export type TransactionHistory = {
   transaction_history: {
-    address: HumanAddr;
+    address: Addr;
     /**
      * optional page to display
      */
@@ -246,7 +246,7 @@ export type RegisteredCodeHash = {
     /**
      * the contract whose receive registration info you want to view
      */
-    contract: HumanAddr;
+    contract: Addr;
   };
 };
 
@@ -280,8 +280,8 @@ export type WithPermit = {
   };
 };
 
-export type HumanAddr = string;
-export type TokenPermissions = "allowance" | "balance" | "history" | "owner";
+export type Addr = string;
+export type TokenPermissions = 'allowance' | 'balance' | 'history' | 'owner';
 
 /**
  * Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.
@@ -295,132 +295,132 @@ export type Binary = string;
  */
 export type QueryWithPermit =
   | {
-    royalty_info: {
-      /**
-       * optional ID of the token whose royalty information should be displayed.  If not provided, display the contract's default royalty information
-       */
-      token_id?: string | null;
-    };
-  }
+      royalty_info: {
+        /**
+         * optional ID of the token whose royalty information should be displayed.  If not provided, display the contract's default royalty information
+         */
+        token_id?: string | null;
+      };
+    }
   | {
-    private_metadata: {
-      token_id: string;
-    };
-  }
+      private_metadata: {
+        token_id: string;
+      };
+    }
   | {
-    nft_dossier: {
-      /**
-       * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
-       */
-      include_expired?: boolean | null;
-      token_id: string;
-    };
-  }
+      nft_dossier: {
+        /**
+         * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
+         */
+        include_expired?: boolean | null;
+        token_id: string;
+      };
+    }
   | {
-    batch_nft_dossier: {
-      /**
-       * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
-       */
-      include_expired?: boolean | null;
-      token_ids: string[];
-    };
-  }
+      batch_nft_dossier: {
+        /**
+         * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
+         */
+        include_expired?: boolean | null;
+        token_ids: string[];
+      };
+    }
   | {
-    owner_of: {
-      /**
-       * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
-       */
-      include_expired?: boolean | null;
-      token_id: string;
-    };
-  }
+      owner_of: {
+        /**
+         * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
+         */
+        include_expired?: boolean | null;
+        token_id: string;
+      };
+    }
   | {
-    all_nft_info: {
-      /**
-       * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
-       */
-      include_expired?: boolean | null;
-      token_id: string;
-    };
-  }
+      all_nft_info: {
+        /**
+         * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
+         */
+        include_expired?: boolean | null;
+        token_id: string;
+      };
+    }
   | {
-    inventory_approvals: {
-      /**
-       * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
-       */
-      include_expired?: boolean | null;
-    };
-  }
+      inventory_approvals: {
+        /**
+         * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
+         */
+        include_expired?: boolean | null;
+      };
+    }
   | {
-    verify_transfer_approval: {
-      /**
-       * list of tokens to verify approval for
-       */
-      token_ids: string[];
-    };
-  }
+      verify_transfer_approval: {
+        /**
+         * list of tokens to verify approval for
+         */
+        token_ids: string[];
+      };
+    }
   | {
-    transaction_history: {
-      /**
-       * optional page to display
-       */
-      page?: number | null;
-      /**
-       * optional number of transactions per page
-       */
-      page_size?: number | null;
-    };
-  }
+      transaction_history: {
+        /**
+         * optional page to display
+         */
+        page?: number | null;
+        /**
+         * optional number of transactions per page
+         */
+        page_size?: number | null;
+      };
+    }
   | {
-    num_tokens: Record<string, never>;
-  }
+      num_tokens: Record<string, never>;
+    }
   | {
-    all_tokens: {
-      /**
-       * optional number of token ids to display
-       */
-      limit?: number | null;
-      /**
-       * paginate by providing the last token_id received in the previous query
-       */
-      start_after?: string | null;
-    };
-  }
+      all_tokens: {
+        /**
+         * optional number of token ids to display
+         */
+        limit?: number | null;
+        /**
+         * paginate by providing the last token_id received in the previous query
+         */
+        start_after?: string | null;
+      };
+    }
   | {
-    token_approvals: {
-      /**
-       * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
-       */
-      include_expired?: boolean | null;
-      token_id: string;
-    };
-  }
+      token_approvals: {
+        /**
+         * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
+         */
+        include_expired?: boolean | null;
+        token_id: string;
+      };
+    }
   | {
-    approved_for_all: {
-      /**
-       * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
-       */
-      include_expired?: boolean | null;
-    };
-  }
+      approved_for_all: {
+        /**
+         * optionally include expired Approvals in the response list.  If ommitted or false, expired Approvals will be filtered out of the response
+         */
+        include_expired?: boolean | null;
+      };
+    }
   | {
-    tokens: {
-      /**
-       * optional number of token ids to display
-       */
-      limit?: number | null;
-      owner: HumanAddr;
-      /**
-       * paginate by providing the last token_id received in the previous query
-       */
-      start_after?: string | null;
-    };
-  }
+      tokens: {
+        /**
+         * optional number of token ids to display
+         */
+        limit?: number | null;
+        owner: Addr;
+        /**
+         * paginate by providing the last token_id received in the previous query
+         */
+        start_after?: string | null;
+      };
+    }
   | {
-    num_tokens_of_owner: {
-      owner: HumanAddr;
+      num_tokens_of_owner: {
+        owner: Addr;
+      };
     };
-  };
 
 /**
  * the address and viewing key making an authenticated query request
@@ -429,7 +429,7 @@ export interface ViewerInfo {
   /**
    * querying address
    */
-  address: HumanAddr;
+  address: Addr;
   /**
    * authentication key string
    */
@@ -442,7 +442,7 @@ export interface PermitFor_TokenPermissions {
 }
 
 export interface PermitParamsFor_TokenPermissions {
-  allowed_tokens: HumanAddr[];
+  allowed_tokens: Addr[];
   chain_id: string;
   permissions: TokenPermissions[];
   permit_name: string;

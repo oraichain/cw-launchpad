@@ -13,21 +13,21 @@ export type ChangeStatus = {
 };
 
 export type PaymentMethod =
-  | "native"
+  | 'native'
   | {
-    token: {
-      contract: HumanAddr;
-      code_hash: string;
+      token: {
+        contract: Addr;
+        code_hash: string;
+      };
     };
-  };
 
 export type Whitelist =
   | {
-    empty: { with?: HumanAddr[] | null };
-  }
+      empty: { with?: Addr[] | null };
+    }
   | {
-    shared: { with_blocked?: HumanAddr[] | null };
-  };
+      shared: { with_blocked?: Addr[] | null };
+    };
 
 export type StartIdo = {
   start_ido: {
@@ -36,7 +36,7 @@ export type StartIdo = {
     payment: PaymentMethod;
     price: Uint128;
     start_time: number;
-    token_contract: HumanAddr;
+    token_contract: Addr;
     token_contract_hash: string;
     tokens_per_tier: Uint128[];
     total_amount: Uint128;
@@ -47,7 +47,7 @@ export type StartIdo = {
 
 export type WhitelistAdd = {
   whitelist_add: {
-    addresses: HumanAddr[];
+    addresses: Addr[];
     ido_id: number;
     padding?: string | null;
   };
@@ -55,7 +55,7 @@ export type WhitelistAdd = {
 
 export type WhitelistRemove = {
   whitelist_remove: {
-    addresses: HumanAddr[];
+    addresses: Addr[];
     ido_id: number;
     padding?: string | null;
   };
@@ -93,5 +93,5 @@ export interface NftToken {
 }
 
 export type Uint128 = string;
-export type HumanAddr = string;
-export type ContractStatus = "active" | "stopped";
+export type Addr = string;
+export type ContractStatus = 'active' | 'stopped';

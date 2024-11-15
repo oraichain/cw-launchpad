@@ -1,14 +1,15 @@
 use crate::{
     band::BandProtocol,
     msg::{
-        ContractStatus, HandleAnswer, HandleMsg, InitMsg, QueryAnswer, QueryMsg, ResponseStatus,
+        ContractStatus, HandleAnswer, ExecuteMsg, InstantiateMsg, QueryAnswer, QueryMsg,
+        ResponseStatus,
     },
     state::{self, Config, UserInfo, UserWithdrawal},
     utils,
 };
 use cosmwasm_std::{
     coin, coins, to_binary, Api, BankMsg, CosmosMsg, Env, Extern, HandleResponse, HandleResult,
-    HumanAddr, InitResponse, InitResult, Querier, QueryResult, StakingMsg, StdError, Storage,
+    Addr, InitResponse, InitResult, Querier, QueryResult, StakingMsg, StdError, Storage,
     Uint128,
 };
 use secret_toolkit_utils::{pad_handle_result, pad_query_result};
@@ -20,7 +21,7 @@ pub const USCRT: &str = "uscrt";
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    msg: InitMsg,
+    msg: InstantiateMsg,
 ) -> InitResult {
     let deposits = msg.deposits.iter().map(|v| v.u128()).collect::<Vec<_>>();
 
@@ -52,21 +53,21 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
 pub fn handle<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    msg: HandleMsg,
+    msg: ExecuteMsg,
 ) -> HandleResult {
     let response = match msg {
-        HandleMsg::ChangeAdmin { admin, .. } => try_change_admin(deps, env, admin),
-        HandleMsg::ChangeStatus { status, .. } => try_change_status(deps, env, status),
-        HandleMsg::Deposit { .. } => try_deposit(deps, env),
-        HandleMsg::Withdraw { .. } => try_withdraw(deps, env),
-        HandleMsg::Claim {
+        ExecuteMsg::ChangeAdmin { admin, .. } => try_change_admin(deps, env, admin),
+        ExecuteMsg::ChangeStatus { status, .. } => try_change_status(deps, env, status),
+        ExecuteMsg::Deposit { .. } => try_deposit(deps, env),
+        ExecuteMsg::Withdraw { .. } => try_withdraw(deps, env),
+        ExecuteMsg::Claim {
             recipient,
             start,
             limit,
             ..
         } => try_claim(deps, env, recipient, start, limit),
-        HandleMsg::WithdrawRewards { recipient, .. } => try_withdraw_rewards(deps, env, recipient),
-        HandleMsg::Redelegate {
+        ExecuteMsg::WithdrawRewards { recipient, .. } => try_withdraw_rewards(deps, env, recipient),
+        ExecuteMsg::Redelegate {
             validator_address,
             recipient,
             ..
@@ -93,7 +94,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>, msg: QueryM
 pub fn try_change_admin<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    new_admin: HumanAddr,
+    new_admin: Addr,
 ) -> HandleResult {
     let mut config = Config::load(&deps.storage)?;
     utils::assert_admin(&deps.api, &env, &config)?;
@@ -289,7 +290,7 @@ pub fn try_withdraw<S: Storage, A: Api, Q: Querier>(
 pub fn try_claim<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    recipient: Option<HumanAddr>,
+    recipient: Option<Addr>,
     start: Option<u32>,
     limit: Option<u32>,
 ) -> HandleResult {
@@ -353,7 +354,7 @@ pub fn try_claim<S: Storage, A: Api, Q: Querier>(
 pub fn try_withdraw_rewards<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    recipient: Option<HumanAddr>,
+    recipient: Option<Addr>,
 ) -> HandleResult {
     let config = Config::load(&deps.storage)?;
     utils::assert_admin(&deps.api, &env, &config)?;
@@ -392,8 +393,8 @@ pub fn try_withdraw_rewards<S: Storage, A: Api, Q: Querier>(
 pub fn try_redelegate<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    validator_address: HumanAddr,
-    recipient: Option<HumanAddr>,
+    validator_address: Addr,
+    recipient: Option<Addr>,
 ) -> HandleResult {
     let mut config = Config::load(&deps.storage)?;
     utils::assert_admin(&deps.api, &env, &config)?;
@@ -475,7 +476,7 @@ pub fn query_config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> Q
 
 pub fn query_user_info<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-    address: HumanAddr,
+    address: Addr,
 ) -> QueryResult {
     let config = Config::load(&deps.storage)?;
     let canonical_address = deps.api.canonical_address(&address)?;
@@ -495,7 +496,7 @@ pub fn query_user_info<S: Storage, A: Api, Q: Querier>(
 
 pub fn query_withdrawals<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-    address: HumanAddr,
+    address: Addr,
     start: Option<u32>,
     limit: Option<u32>,
 ) -> QueryResult {
@@ -537,7 +538,7 @@ mod tests {
     }
 
     fn init_contract(
-        init_msg: InitMsg,
+        init_msg: InstantiateMsg,
     ) -> Result<Extern<MemoryStorage, MockApi, MockQuerier>, StdError> {
         let balance = coins(1000, USCRT);
         let mut deps = mock_dependencies(20, &[]);
@@ -548,14 +549,14 @@ mod tests {
     }
 
     fn init_with_default() -> Extern<MemoryStorage, MockApi, MockQuerier> {
-        let admin = HumanAddr::from("admin");
-        let validator = HumanAddr::from("validator");
+        let admin = Addr::from("admin");
+        let validator = Addr::from("validator");
         let deposits = vec![20000u128, 5000, 750, 100]
             .into_iter()
             .map(Into::into)
             .collect();
 
-        let init_msg = InitMsg {
+        let init_msg = InstantiateMsg {
             admin: Some(admin),
             validator,
             deposits,
@@ -603,7 +604,7 @@ mod tests {
 
     fn user_info<S: Storage, A: Api, Q: Querier>(
         deps: &Extern<S, A, Q>,
-        address: HumanAddr,
+        address: Addr,
     ) -> UserInfo {
         let msg = QueryMsg::UserInfo { address };
         let response = query(deps, msg).unwrap();
@@ -626,7 +627,7 @@ mod tests {
 
     fn get_withdrawals<S: Storage, A: Api, Q: Querier>(
         deps: &Extern<S, A, Q>,
-        address: HumanAddr,
+        address: Addr,
     ) -> Vec<SerializedWithdrawals> {
         let msg = QueryMsg::Withdrawals {
             address,
@@ -649,8 +650,8 @@ mod tests {
 
     #[test]
     fn initialization() {
-        let admin = HumanAddr::from("admin");
-        let validator = HumanAddr::from("secretvaloper1l92u46n0d33mhkknwm7zpg0twlqqxg826990re");
+        let admin = Addr::from("admin");
+        let validator = Addr::from("secretvaloper1l92u46n0d33mhkknwm7zpg0twlqqxg826990re");
 
         let deposits: Vec<Uint128> = vec![20000u128, 5000, 750, 100]
             .into_iter()
@@ -663,7 +664,7 @@ mod tests {
             .map(Into::into)
             .collect();
 
-        let init_msg = InitMsg {
+        let init_msg = InstantiateMsg {
             admin: Some(admin.clone()),
             validator: validator.clone(),
             deposits: wrong_deposits,
@@ -676,7 +677,7 @@ mod tests {
         assert!(error.contains("Specify deposits in decreasing order"));
 
         // Zero elements in deposits
-        let init_msg = InitMsg {
+        let init_msg = InstantiateMsg {
             admin: Some(admin.clone()),
             validator: validator.clone(),
             deposits: vec![],
@@ -689,7 +690,7 @@ mod tests {
         assert!(error.contains("Deposits array is empty"));
 
         // Init with sender
-        let init_msg = InitMsg {
+        let init_msg = InstantiateMsg {
             admin: None,
             validator: validator.clone(),
             deposits: deposits.clone(),
@@ -714,8 +715,8 @@ mod tests {
         }
 
         // Init with custom admin
-        let alice = HumanAddr::from("alice");
-        let init_msg = InitMsg {
+        let alice = Addr::from("alice");
+        let init_msg = InstantiateMsg {
             admin: Some(alice.clone()),
             validator: validator.clone(),
             deposits,
@@ -735,12 +736,12 @@ mod tests {
     #[test]
     fn change_admin() {
         let mut deps = init_with_default();
-        let admin = HumanAddr::from("admin");
-        let alice = HumanAddr::from("alice");
-        let new_admin = HumanAddr::from("new_admin");
+        let admin = Addr::from("admin");
+        let alice = Addr::from("alice");
+        let new_admin = Addr::from("new_admin");
 
         let env = mock_env(&alice, &[]);
-        let change_admin_msg = HandleMsg::ChangeAdmin {
+        let change_admin_msg = ExecuteMsg::ChangeAdmin {
             admin: new_admin.clone(),
             padding: None,
         };
@@ -760,11 +761,11 @@ mod tests {
     #[test]
     fn change_status() {
         let mut deps = init_with_default();
-        let admin = HumanAddr::from("admin");
-        let alice = HumanAddr::from("alice");
+        let admin = Addr::from("admin");
+        let alice = Addr::from("alice");
 
         let env = mock_env(&alice, &[]);
-        let change_admin_msg = HandleMsg::ChangeStatus {
+        let change_admin_msg = ExecuteMsg::ChangeStatus {
             status: ContractStatus::Stopped,
             padding: None,
         };
@@ -779,7 +780,7 @@ mod tests {
         let config = Config::load(&deps.storage).unwrap();
         assert_eq!(config.status, ContractStatus::Stopped as u8);
 
-        let change_admin_msg = HandleMsg::ChangeStatus {
+        let change_admin_msg = ExecuteMsg::ChangeStatus {
             status: ContractStatus::Active,
             padding: None,
         };
@@ -792,7 +793,7 @@ mod tests {
     #[test]
     fn deposit() {
         let mut deps = init_with_default();
-        let alice = HumanAddr::from("alice");
+        let alice = Addr::from("alice");
 
         let alice_info = user_info(&deps, alice.clone());
         assert_eq!(alice_info.scrt_deposit, 0);
@@ -804,7 +805,7 @@ mod tests {
         env.block.time = current_time();
         env.message.sent_funds = coins(99, USCRT);
 
-        let deposit_msg = HandleMsg::Deposit { padding: None };
+        let deposit_msg = ExecuteMsg::Deposit { padding: None };
         let response = handle(&mut deps, env.clone(), deposit_msg.clone());
         let error = extract_error(response);
         assert!(error.contains("You should deposit at least 100 USD (200 USCRT)"));
@@ -837,7 +838,7 @@ mod tests {
         assert_eq!(
             response.messages[0],
             CosmosMsg::Staking(StakingMsg::Delegate {
-                validator: HumanAddr::from("validator"),
+                validator: Addr::from("validator"),
                 amount: coin(200, USCRT)
             })
         );
@@ -885,7 +886,7 @@ mod tests {
         assert_eq!(
             response.messages[1],
             CosmosMsg::Staking(StakingMsg::Delegate {
-                validator: HumanAddr::from("validator"),
+                validator: Addr::from("validator"),
                 amount: coin(9800, USCRT)
             })
         );
@@ -932,7 +933,7 @@ mod tests {
         assert_eq!(
             response.messages[1],
             CosmosMsg::Staking(StakingMsg::Delegate {
-                validator: HumanAddr::from("validator"),
+                validator: Addr::from("validator"),
                 amount: coin(30000, USCRT)
             })
         );
@@ -951,14 +952,14 @@ mod tests {
     #[test]
     fn withdraw() {
         let mut deps = init_with_default();
-        let alice = HumanAddr::from("alice");
+        let alice = Addr::from("alice");
 
         let mut env = mock_env(alice.clone(), &[]);
         env.block.time = current_time();
         env.message.sent_funds = coins(1500, USCRT);
 
-        let deposit_msg = HandleMsg::Deposit { padding: None };
-        let withdraw_msg = HandleMsg::Withdraw { padding: None };
+        let deposit_msg = ExecuteMsg::Deposit { padding: None };
+        let withdraw_msg = ExecuteMsg::Withdraw { padding: None };
 
         handle(&mut deps, env.clone(), deposit_msg.clone()).unwrap();
 
@@ -1019,14 +1020,14 @@ mod tests {
     #[test]
     fn claim() {
         let mut deps = init_with_default();
-        let alice = HumanAddr::from("alice");
+        let alice = Addr::from("alice");
 
         let mut env = mock_env(alice.clone(), &[]);
         env.block.time = current_time();
 
-        let deposit_msg = HandleMsg::Deposit { padding: None };
-        let withdraw_msg = HandleMsg::Withdraw { padding: None };
-        let claim_msg = HandleMsg::Claim {
+        let deposit_msg = ExecuteMsg::Deposit { padding: None };
+        let withdraw_msg = ExecuteMsg::Withdraw { padding: None };
+        let claim_msg = ExecuteMsg::Claim {
             start: None,
             limit: None,
             recipient: None,
@@ -1086,7 +1087,7 @@ mod tests {
     #[test]
     fn claim_multiple_withdrawals() {
         let mut deps = init_with_default();
-        let alice = HumanAddr::from("alice");
+        let alice = Addr::from("alice");
         let alice_canonical = deps.api.canonical_address(&alice).unwrap();
 
         let withdrawals = state::withdrawals_list(&alice_canonical);
@@ -1120,7 +1121,7 @@ mod tests {
         let mut env = mock_env(alice, &[]);
         env.block.time = claim_before;
 
-        let claim_msg = HandleMsg::Claim {
+        let claim_msg = ExecuteMsg::Claim {
             start: None,
             limit: Some(amount),
             recipient: None,
@@ -1153,21 +1154,21 @@ mod tests {
     #[test]
     fn redelegate() {
         let mut deps = init_with_default();
-        let admin = HumanAddr::from("admin");
-        let alice = HumanAddr::from("alice");
-        let validator = HumanAddr::from("validator");
-        let new_validator = HumanAddr::from("new_validator");
+        let admin = Addr::from("admin");
+        let alice = Addr::from("alice");
+        let validator = Addr::from("validator");
+        let new_validator = Addr::from("new_validator");
 
         let mut env = mock_env(alice, &[]);
         env.block.time = current_time();
 
-        let redelegate_msg = HandleMsg::Redelegate {
+        let redelegate_msg = ExecuteMsg::Redelegate {
             validator_address: new_validator.clone(),
             recipient: None,
             padding: None,
         };
 
-        let redelegate_back_msg = HandleMsg::Redelegate {
+        let redelegate_back_msg = ExecuteMsg::Redelegate {
             validator_address: validator.clone(),
             recipient: None,
             padding: None,
@@ -1249,14 +1250,14 @@ mod tests {
     #[test]
     fn withdraw_rewards() {
         let mut deps = init_with_default();
-        let admin = HumanAddr::from("admin");
-        let alice = HumanAddr::from("alice");
-        let validator = HumanAddr::from("validator");
+        let admin = Addr::from("admin");
+        let alice = Addr::from("alice");
+        let validator = Addr::from("validator");
 
         let mut env = mock_env(admin.clone(), &[]);
         env.block.time = current_time();
 
-        let withdraw_rewards_msg = HandleMsg::WithdrawRewards {
+        let withdraw_rewards_msg = ExecuteMsg::WithdrawRewards {
             recipient: None,
             padding: None,
         };

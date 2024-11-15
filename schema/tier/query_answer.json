@@ -4,30 +4,20 @@
   "anyOf": [
     {
       "type": "object",
-      "required": [
-        "config"
-      ],
+      "required": ["config"],
       "properties": {
         "config": {
           "type": "object",
-          "required": [
-            "admin",
-            "band_code_hash",
-            "band_oracle",
-            "min_tier",
-            "status",
-            "usd_deposits",
-            "validator"
-          ],
+          "required": ["admin", "band_code_hash", "band_oracle", "min_tier", "status", "usd_deposits", "validator"],
           "properties": {
             "admin": {
-              "$ref": "#/definitions/HumanAddr"
+              "$ref": "#/definitions/Addr"
             },
             "band_code_hash": {
               "type": "string"
             },
             "band_oracle": {
-              "$ref": "#/definitions/HumanAddr"
+              "$ref": "#/definitions/Addr"
             },
             "min_tier": {
               "type": "integer",
@@ -44,7 +34,7 @@
               }
             },
             "validator": {
-              "$ref": "#/definitions/HumanAddr"
+              "$ref": "#/definitions/Addr"
             }
           }
         }
@@ -52,18 +42,11 @@
     },
     {
       "type": "object",
-      "required": [
-        "user_info"
-      ],
+      "required": ["user_info"],
       "properties": {
         "user_info": {
           "type": "object",
-          "required": [
-            "scrt_deposit",
-            "tier",
-            "timestamp",
-            "usd_deposit"
-          ],
+          "required": ["scrt_deposit", "tier", "timestamp", "usd_deposit"],
           "properties": {
             "scrt_deposit": {
               "$ref": "#/definitions/Uint128"
@@ -87,16 +70,11 @@
     },
     {
       "type": "object",
-      "required": [
-        "withdrawals"
-      ],
+      "required": ["withdrawals"],
       "properties": {
         "withdrawals": {
           "type": "object",
-          "required": [
-            "amount",
-            "withdrawals"
-          ],
+          "required": ["amount", "withdrawals"],
           "properties": {
             "amount": {
               "type": "integer",
@@ -117,21 +95,14 @@
   "definitions": {
     "ContractStatus": {
       "type": "string",
-      "enum": [
-        "active",
-        "stopped"
-      ]
+      "enum": ["active", "stopped"]
     },
-    "HumanAddr": {
+    "Addr": {
       "type": "string"
     },
     "SerializedWithdrawals": {
       "type": "object",
-      "required": [
-        "amount",
-        "claim_time",
-        "timestamp"
-      ],
+      "required": ["amount", "claim_time", "timestamp"],
       "properties": {
         "amount": {
           "$ref": "#/definitions/Uint128"

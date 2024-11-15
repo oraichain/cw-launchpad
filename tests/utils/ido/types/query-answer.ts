@@ -1,10 +1,10 @@
 export type Config = {
   config: {
-    admin: HumanAddr;
+    admin: Addr;
     lock_periods: number[];
-    nft_contract: HumanAddr;
+    nft_contract: Addr;
     nft_contract_hash: string;
-    tier_contract: HumanAddr;
+    tier_contract: Addr;
     tier_contract_hash: string;
   };
 };
@@ -16,17 +16,17 @@ export type IdoAmount = {
 };
 
 export type PaymentMethod =
-  | "native"
+  | 'native'
   | {
-    token: {
-      contract: HumanAddr;
-      code_hash: string;
+      token: {
+        contract: Addr;
+        code_hash: string;
+      };
     };
-  };
 
 export type IdoInfo = {
   ido_info: {
-    admin: HumanAddr;
+    admin: Addr;
     end_time: number;
     participants: number;
     payment: PaymentMethod;
@@ -34,7 +34,7 @@ export type IdoInfo = {
     shared_whitelist: boolean;
     sold_amount: Uint128;
     start_time: number;
-    token_contract: HumanAddr;
+    token_contract: Addr;
     token_contract_hash: string;
     total_payment: Uint128;
     soft_cap: Uint128;
@@ -79,7 +79,7 @@ export type UserInfo = {
 };
 
 export type Uint128 = string;
-export type HumanAddr = string;
+export type Addr = string;
 
 export interface PurchaseAnswer {
   timestamp: number;

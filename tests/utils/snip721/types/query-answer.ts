@@ -19,7 +19,7 @@ export type ContractConfig = {
 
 export type Minters = {
   minters: {
-    minters: HumanAddr[];
+    minters: Addr[];
   };
 };
 
@@ -38,7 +38,7 @@ export type TokenList = {
 export type OwnerOf = {
   owner_of: {
     approvals: Cw721Approval[];
-    owner: HumanAddr;
+    owner: Addr;
   };
 };
 
@@ -88,7 +88,7 @@ export type NftDossier = {
     display_private_metadata_error?: string | null;
     inventory_approvals?: Snip721Approval[] | null;
     mint_run_info?: MintRunInfo | null;
-    owner?: HumanAddr | null;
+    owner?: Addr | null;
     owner_is_public: boolean;
     private_metadata?: Metadata | null;
     private_metadata_is_public: boolean;
@@ -170,68 +170,68 @@ export type RoyaltyInfo = {
 
 export type ContractCreator = {
   contract_creator: {
-    creator?: HumanAddr | null;
+    creator?: Addr | null;
   };
 };
 
-export type HumanAddr = string;
+export type Addr = string;
 
 /**
  * at the given point in time and after, Expiration will be considered expired
  */
 export type Expiration =
-  | "never"
+  | 'never'
   | {
-    at_height: number;
-  }
+      at_height: number;
+    }
   | {
-    at_time: number;
-  };
+      at_time: number;
+    };
 
 /**
  * tx type and specifics
  */
 export type TxAction =
   | {
-    transfer: {
-      /**
-       * previous owner
-       */
-      from: HumanAddr;
-      /**
-       * new owner
-       */
-      recipient: HumanAddr;
-      /**
-       * optional sender if not owner
-       */
-      sender?: HumanAddr | null;
-    };
-  }
+      transfer: {
+        /**
+         * previous owner
+         */
+        from: Addr;
+        /**
+         * new owner
+         */
+        recipient: Addr;
+        /**
+         * optional sender if not owner
+         */
+        sender?: Addr | null;
+      };
+    }
   | {
-    mint: {
-      /**
-       * minter's address
-       */
-      minter: HumanAddr;
-      /**
-       * token's first owner
-       */
-      recipient: HumanAddr;
-    };
-  }
+      mint: {
+        /**
+         * minter's address
+         */
+        minter: Addr;
+        /**
+         * token's first owner
+         */
+        recipient: Addr;
+      };
+    }
   | {
-    burn: {
-      /**
-       * burner's address if not owner
-       */
-      burner?: HumanAddr | null;
-      /**
-       * previous owner
-       */
-      owner: HumanAddr;
+      burn: {
+        /**
+         * burner's address if not owner
+         */
+        burner?: Addr | null;
+        /**
+         * previous owner
+         */
+        owner: Addr;
+      };
     };
-  };
 
 /**
  * CW721 Approval
@@ -244,7 +244,7 @@ export interface Cw721Approval {
   /**
    * address that can transfer the token
    */
-  spender: HumanAddr;
+  spender: Addr;
 }
 
 /**
@@ -254,7 +254,7 @@ export interface Snip721Approval {
   /**
    * whitelisted address
    */
-  address: HumanAddr;
+  address: Addr;
   /**
    * optional expiration if the address has transfer permission
    */
@@ -392,7 +392,7 @@ export interface Cw721OwnerOfResponse {
   /**
    * Owner of the token if permitted to view it
    */
-  owner?: HumanAddr | null;
+  owner?: Addr | null;
 }
 
 /**
@@ -416,7 +416,7 @@ export interface MintRunInfo {
   /**
    * optional address of the SNIP-721 contract creator
    */
-  collection_creator?: HumanAddr | null;
+  collection_creator?: Addr | null;
   /**
    * optional number of the mint run this token was minted in.  A mint run represents a batch of NFTs released at the same time.  So if a creator decided to make 100 copies of an NFT, they would all be part of mint run number 1.  If they sold quickly, and the creator wanted to rerelease that NFT, he could make 100 more copies which would all be part of mint run number 2.
    */
@@ -436,7 +436,7 @@ export interface MintRunInfo {
   /**
    * optional address of this NFT's creator
    */
-  token_creator?: HumanAddr | null;
+  token_creator?: Addr | null;
 }
 
 /**
@@ -464,7 +464,7 @@ export interface DisplayRoyalty {
   /**
    * address to send royalties to.  Can be None to keep addresses private
    */
-  recipient?: HumanAddr | null;
+  recipient?: Addr | null;
 }
 
 /**
@@ -474,7 +474,7 @@ export interface BatchNftDossierElement {
   display_private_metadata_error?: string | null;
   inventory_approvals?: Snip721Approval[] | null;
   mint_run_info?: MintRunInfo | null;
-  owner?: HumanAddr | null;
+  owner?: Addr | null;
   owner_is_public: boolean;
   private_metadata?: Metadata | null;
   private_metadata_is_public: boolean;

@@ -1,5 +1,5 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{HumanAddr, Uint128};
+use cosmwasm_std::{Addr, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -31,19 +31,19 @@ impl From<u8> for ContractStatus {
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct InitMsg {
-    pub admin: Option<HumanAddr>,
-    pub validator: HumanAddr,
+pub struct InstantiateMsg {
+    pub admin: Option<Addr>,
+    pub validator: Addr,
     pub deposits: Vec<Uint128>,
-    pub band_oracle: HumanAddr,
+    pub band_oracle: Addr,
     pub band_code_hash: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum HandleMsg {
+pub enum ExecuteMsg {
     ChangeAdmin {
-        admin: HumanAddr,
+        admin: Addr,
         padding: Option<String>,
     },
     ChangeStatus {
@@ -57,18 +57,18 @@ pub enum HandleMsg {
         padding: Option<String>,
     },
     Claim {
-        recipient: Option<HumanAddr>,
+        recipient: Option<Addr>,
         start: Option<u32>,
         limit: Option<u32>,
         padding: Option<String>,
     },
     WithdrawRewards {
-        recipient: Option<HumanAddr>,
+        recipient: Option<Addr>,
         padding: Option<String>,
     },
     Redelegate {
-        validator_address: HumanAddr,
-        recipient: Option<HumanAddr>,
+        validator_address: Addr,
+        recipient: Option<Addr>,
         padding: Option<String>,
     },
 }
@@ -110,10 +110,10 @@ pub enum HandleAnswer {
 pub enum QueryMsg {
     Config {},
     UserInfo {
-        address: HumanAddr,
+        address: Addr,
     },
     Withdrawals {
-        address: HumanAddr,
+        address: Addr,
         start: Option<u32>,
         limit: Option<u32>,
     },
@@ -131,10 +131,10 @@ pub struct SerializedWithdrawals {
 #[serde(rename_all = "snake_case")]
 pub enum QueryAnswer {
     Config {
-        admin: HumanAddr,
-        validator: HumanAddr,
+        admin: Addr,
+        validator: Addr,
         status: ContractStatus,
-        band_oracle: HumanAddr,
+        band_oracle: Addr,
         band_code_hash: String,
         usd_deposits: Vec<Uint128>,
         min_tier: u8,

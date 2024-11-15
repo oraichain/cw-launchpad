@@ -4,16 +4,16 @@ export type Config = {
 
 export type UserInfo = {
   user_info: {
-    address: HumanAddr;
+    address: Addr;
   };
 };
 
 export type Withdrawals = {
   withdrawals: {
-    address: HumanAddr;
+    address: Addr;
     start?: number | null;
     limit?: number | null;
   };
 };
 
-export type HumanAddr = string;
+export type Addr = string;

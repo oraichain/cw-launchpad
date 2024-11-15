@@ -1,6 +1,6 @@
 use crate::{contract::USCRT, state::Config};
 use cosmwasm_std::{
-    Api, Coin, Empty, Env, FullDelegation, HumanAddr, Querier, QueryRequest, StakingQuery,
+    Api, Coin, Empty, Env, FullDelegation, Addr, Querier, QueryRequest, StakingQuery,
     StdError, StdResult,
 };
 use serde::Deserialize;
@@ -14,7 +14,7 @@ pub fn assert_admin<A: Api>(api: &A, env: &Env, config: &Config) -> StdResult<()
     Ok(())
 }
 
-pub fn check_validator<Q: Querier>(querier: &Q, validator: &HumanAddr) -> StdResult<()> {
+pub fn check_validator<Q: Querier>(querier: &Q, validator: &Addr) -> StdResult<()> {
     let validators = querier.query_validators()?;
     let has_validator = validators.iter().any(|v| v.address == *validator);
     if !has_validator {
@@ -48,8 +48,8 @@ struct FixedDelegationResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct FixedFullDelegation {
-    pub delegator: HumanAddr,
-    pub validator: HumanAddr,
+    pub delegator: Addr,
+    pub validator: Addr,
     pub amount: Coin,
     pub can_redelegate: Coin,
     pub accumulated_rewards: Vec<Coin>,
@@ -76,7 +76,7 @@ impl From<FixedFullDelegation> for FullDelegation {
 pub fn query_delegation<Q: Querier>(
     querier: &Q,
     env: &Env,
-    validator: &HumanAddr,
+    validator: &Addr,
 ) -> StdResult<Option<FullDelegation>> {
     let delegation_request = StakingQuery::Delegation {
         delegator: env.contract.address.clone(),

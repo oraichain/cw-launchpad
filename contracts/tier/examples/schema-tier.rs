@@ -12,8 +12,8 @@ fn main() {
     create_dir_all(&tier_dir).unwrap();
     remove_schemas(&tier_dir).unwrap();
 
-    export_schema(&schema_for!(tier::msg::InitMsg), &tier_dir);
-    export_schema(&schema_for!(tier::msg::HandleMsg), &tier_dir);
+    export_schema(&schema_for!(tier::msg::InstantiateMsg), &tier_dir);
+    export_schema(&schema_for!(tier::msg::ExecuteMsg), &tier_dir);
     export_schema(&schema_for!(tier::msg::QueryMsg), &tier_dir);
     export_schema(&schema_for!(tier::msg::HandleAnswer), &tier_dir);
     export_schema(&schema_for!(tier::msg::QueryAnswer), &tier_dir);

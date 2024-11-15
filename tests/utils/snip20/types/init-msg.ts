@@ -1,9 +1,9 @@
-export type HumanAddr = string;
+export type Addr = string;
 export type Uint128 = string;
 export type Binary = string;
 
-export interface InitMsg {
-  admin?: HumanAddr | null;
+export interface InstantiateMsg {
+  admin?: Addr | null;
   config?: InitConfig | null;
   decimals: number;
   initial_balances?: InitialBalance[] | null;
@@ -39,6 +39,6 @@ export interface InitConfig {
 }
 
 export interface InitialBalance {
-  address: HumanAddr;
+  address: Addr;
   amount: Uint128;
 }

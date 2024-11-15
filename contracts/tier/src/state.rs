@@ -1,6 +1,6 @@
 use crate::msg::{ContractStatus, QueryAnswer, SerializedWithdrawals};
 use cosmwasm_std::{
-    Api, CanonicalAddr, HumanAddr, ReadonlyStorage, StdError, StdResult, Storage, Uint128,
+    Api, CanonicalAddr, Addr, ReadonlyStorage, StdError, StdResult, Storage, Uint128,
 };
 use secret_toolkit_storage::{DequeStore, Item, Keymap};
 use serde::{Deserialize, Serialize};
@@ -19,9 +19,9 @@ pub fn withdrawals_list(address: &CanonicalAddr) -> DequeStore<'static, UserWith
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Config {
     pub admin: CanonicalAddr,
-    pub validator: HumanAddr,
+    pub validator: Addr,
     pub status: u8,
-    pub band_oracle: HumanAddr,
+    pub band_oracle: Addr,
     pub band_code_hash: String,
     pub usd_deposits: Vec<u128>,
 }
@@ -125,11 +125,11 @@ impl UserWithdrawal {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cosmwasm_std::{testing::mock_dependencies, Api, HumanAddr};
+    use cosmwasm_std::{testing::mock_dependencies, Api, Addr};
 
     fn get_config<A: Api>(api: &A) -> Config {
-        let owner = HumanAddr::from("owner");
-        let validator = HumanAddr::from("validator");
+        let owner = Addr::from("owner");
+        let validator = Addr::from("validator");
 
         Config {
             status: ContractStatus::Stopped as u8,

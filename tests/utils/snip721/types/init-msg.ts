@@ -1,4 +1,4 @@
-export type HumanAddr = string;
+export type Addr = string;
 export type Uint128 = string;
 
 /**
@@ -11,11 +11,11 @@ export type Binary = string;
 /**
  * Instantiation message
  */
-export interface InitMsg {
+export interface InstantiateMsg {
   /**
    * optional admin address, env.message.sender if missing
    */
-  admin?: HumanAddr | null;
+  admin?: Addr | null;
   /**
    * optional privacy configuration for the contract
    */
@@ -87,7 +87,7 @@ export interface PostInitCallback {
   /**
    * address of the contract to execute
    */
-  contract_address: HumanAddr;
+  contract_address: Addr;
   /**
    * the callback message to execute
    */
@@ -128,5 +128,5 @@ export interface Royalty {
   /**
    * address to send royalties to
    */
-  recipient: HumanAddr;
+  recipient: Addr;
 }

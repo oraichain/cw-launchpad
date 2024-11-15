@@ -1,12 +1,12 @@
 export type Config = {
   config: {
-    admin: HumanAddr;
+    admin: Addr;
     band_code_hash: string;
-    band_oracle: HumanAddr;
+    band_oracle: Addr;
     min_tier: number;
     status: ContractStatus;
     usd_deposits: Uint128[];
-    validator: HumanAddr;
+    validator: Addr;
   };
 };
 
@@ -26,7 +26,7 @@ export type Withdrawals = {
   };
 };
 
-export type HumanAddr = string;
+export type Addr = string;
 export type Uint128 = string;
 
 export interface SerializedWithdrawals {
@@ -35,4 +35,4 @@ export interface SerializedWithdrawals {
   timestamp: number;
 }
 
-export type ContractStatus = "active" | "stopped";
+export type ContractStatus = 'active' | 'stopped';

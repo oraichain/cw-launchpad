@@ -12,8 +12,8 @@ fn main() {
     create_dir_all(&ido_dir).unwrap();
     remove_schemas(&ido_dir).unwrap();
 
-    export_schema(&schema_for!(ido::msg::InitMsg), &ido_dir);
-    export_schema(&schema_for!(ido::msg::HandleMsg), &ido_dir);
+    export_schema(&schema_for!(ido::msg::InstantiateMsg), &ido_dir);
+    export_schema(&schema_for!(ido::msg::ExecuteMsg), &ido_dir);
     export_schema(&schema_for!(ido::msg::QueryMsg), &ido_dir);
     export_schema(&schema_for!(ido::msg::HandleAnswer), &ido_dir);
     export_schema(&schema_for!(ido::msg::QueryAnswer), &ido_dir);

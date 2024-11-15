@@ -4,9 +4,7 @@
   "anyOf": [
     {
       "type": "object",
-      "required": [
-        "config"
-      ],
+      "required": ["config"],
       "properties": {
         "config": {
           "type": "object"
@@ -15,18 +13,14 @@
     },
     {
       "type": "object",
-      "required": [
-        "user_info"
-      ],
+      "required": ["user_info"],
       "properties": {
         "user_info": {
           "type": "object",
-          "required": [
-            "address"
-          ],
+          "required": ["address"],
           "properties": {
             "address": {
-              "$ref": "#/definitions/HumanAddr"
+              "$ref": "#/definitions/Addr"
             }
           }
         }
@@ -34,32 +28,22 @@
     },
     {
       "type": "object",
-      "required": [
-        "withdrawals"
-      ],
+      "required": ["withdrawals"],
       "properties": {
         "withdrawals": {
           "type": "object",
-          "required": [
-            "address"
-          ],
+          "required": ["address"],
           "properties": {
             "address": {
-              "$ref": "#/definitions/HumanAddr"
+              "$ref": "#/definitions/Addr"
             },
             "limit": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": ["integer", "null"],
               "format": "uint32",
               "minimum": 0.0
             },
             "start": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": ["integer", "null"],
               "format": "uint32",
               "minimum": 0.0
             }
@@ -69,7 +53,7 @@
     }
   ],
   "definitions": {
-    "HumanAddr": {
+    "Addr": {
       "type": "string"
     }
   }
