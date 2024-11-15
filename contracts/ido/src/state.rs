@@ -1,7 +1,7 @@
 use crate::msg::{PaymentMethod, PurchaseAnswer, QueryAnswer};
+use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Api, CanonicalAddr, StdResult, Storage, Uint128};
 use cw_storage_plus::{AppendStore, DequeStore, Item, Keymap};
-use serde::{Deserialize, Serialize};
 use std::cmp::min;
 
 static CONFIG_KEY: Item<Config> = Item::new(b"config");
@@ -43,7 +43,7 @@ pub fn ido_list_owned_by(ido_admin: &CanonicalAddr) -> AppendStore<u32> {
     OWNER_TO_IDOS.add_suffix(ido_admin.as_slice())
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[cw_serde]
 pub struct Config {
     pub admin: CanonicalAddr,
     pub status: u8,
@@ -85,7 +85,7 @@ impl Config {
     }
 }
 
-#[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[cw_serde]
 pub struct Purchase {
     pub tokens_amount: u128,
     pub timestamp: u64,
@@ -95,14 +95,14 @@ pub struct Purchase {
 impl Purchase {
     pub fn to_answer(&self) -> PurchaseAnswer {
         PurchaseAnswer {
-            tokens_amount: Uint128(self.tokens_amount),
+            tokens_amount: Uint128::from(self.tokens_amount),
             timestamp: self.timestamp,
             unlock_time: self.unlock_time,
         }
     }
 }
 
-#[derive(Clone, Default, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[cw_serde]
 pub struct UserInfo {
     pub total_payment: u128,
     pub total_tokens_bought: u128,
@@ -112,9 +112,9 @@ pub struct UserInfo {
 impl UserInfo {
     pub fn to_answer(&self) -> QueryAnswer {
         QueryAnswer::UserInfo {
-            total_payment: Uint128(self.total_payment),
-            total_tokens_bought: Uint128(self.total_tokens_bought),
-            total_tokens_received: Uint128(self.total_tokens_received),
+            total_payment: Uint128::from(self.total_payment),
+            total_tokens_bought: Uint128::from(self.total_tokens_bought),
+            total_tokens_received: Uint128::from(self.total_tokens_received),
         }
     }
 }
@@ -222,7 +222,7 @@ impl Ido {
         };
         let mut remaining_per_tiers: Vec<Uint128> = vec![];
         for tier in 1..=(self.remaining_tokens_per_tier.len() as u8) {
-            remaining_per_tiers.push(Uint128(self.remaining_tokens_per_tier(tier)));
+            remaining_per_tiers.push(Uint128::from(self.remaining_tokens_per_tier(tier)));
         }
         Ok(QueryAnswer::IdoInfo {
             admin,
@@ -230,14 +230,14 @@ impl Ido {
             end_time: self.end_time,
             token_contract,
             token_contract_hash: self.token_contract_hash.clone(),
-            price: Uint128(self.price),
+            price: Uint128::from(self.price),
             payment,
             remaining_per_tiers,
             participants: self.participants,
-            sold_amount: Uint128(self.sold_amount),
-            total_tokens_amount: Uint128(self.total_tokens_amount),
-            total_payment: Uint128(self.total_payment),
-            soft_cap: Uint128(self.soft_cap),
+            sold_amount: Uint128::from(self.sold_amount),
+            total_tokens_amount: Uint128::from(self.total_tokens_amount),
+            total_payment: Uint128::from(self.total_payment),
+            soft_cap: Uint128::from(self.soft_cap),
             withdrawn: self.withdrawn,
             shared_whitelist: self.shared_whitelist,
         })

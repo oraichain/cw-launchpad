@@ -1,23 +1,19 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Uint128};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum ResponseStatus {
     Success,
     Failure,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cw_serde]
 pub enum ContractStatus {
     Active,
     Stopped,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[cw_serde]
 pub struct NftToken {
     pub token_id: String,
     pub viewing_key: String,
@@ -170,7 +166,7 @@ pub enum QueryMsg {
     },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[cw_serde]
 pub struct PurchaseAnswer {
     pub tokens_amount: Uint128,
     pub timestamp: u64,

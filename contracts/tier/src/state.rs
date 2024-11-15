@@ -1,6 +1,6 @@
 use crate::msg::{ContractStatus, QueryAnswer, SerializedWithdrawals};
 use cosmwasm_std::{
-    Api, CanonicalAddr, Addr, ReadonlyStorage, StdError, StdResult, Storage, Uint128,
+    Addr, Api, CanonicalAddr, ReadonlyStorage, StdError, StdResult, Storage, Uint128,
 };
 use secret_toolkit_storage::{DequeStore, Item, Keymap};
 use serde::{Deserialize, Serialize};
@@ -99,8 +99,8 @@ impl UserInfo {
         QueryAnswer::UserInfo {
             tier: self.tier,
             timestamp: self.timestamp,
-            usd_deposit: Uint128(self.usd_deposit),
-            scrt_deposit: Uint128(self.scrt_deposit),
+            usd_deposit: Uint128::from(self.usd_deposit),
+            scrt_deposit: Uint128::from(self.scrt_deposit),
         }
     }
 }
@@ -115,7 +115,7 @@ pub struct UserWithdrawal {
 impl UserWithdrawal {
     pub fn to_serialized(&self) -> SerializedWithdrawals {
         SerializedWithdrawals {
-            amount: Uint128(self.amount),
+            amount: Uint128::from(self.amount),
             claim_time: self.claim_time,
             timestamp: self.timestamp,
         }
@@ -125,7 +125,7 @@ impl UserWithdrawal {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cosmwasm_std::{testing::mock_dependencies, Api, Addr};
+    use cosmwasm_std::{testing::mock_dependencies, Addr, Api};
 
     fn get_config<A: Api>(api: &A) -> Config {
         let owner = Addr::from("owner");

@@ -1,15 +1,15 @@
 use crate::{
     band::BandProtocol,
     msg::{
-        ContractStatus, HandleAnswer, ExecuteMsg, InstantiateMsg, QueryAnswer, QueryMsg,
+        ContractStatus, ExecuteMsg, HandleAnswer, InstantiateMsg, QueryAnswer, QueryMsg,
         ResponseStatus,
     },
     state::{self, Config, UserInfo, UserWithdrawal},
     utils,
 };
 use cosmwasm_std::{
-    coin, coins, to_binary, Api, BankMsg, CosmosMsg, Env, Extern, HandleResponse, HandleResult,
-    Addr, InitResponse, InitResult, Querier, QueryResult, StakingMsg, StdError, Storage,
+    coin, coins, to_json_binary, Addr, Api, BankMsg, CosmosMsg, Env, Extern, HandleResponse,
+    HandleResult, InitResponse, InitResult, Querier, QueryResult, StakingMsg, StdError, Storage,
     Uint128,
 };
 use secret_toolkit_utils::{pad_handle_result, pad_query_result};
@@ -103,7 +103,7 @@ pub fn try_change_admin<S: Storage, A: Api, Q: Querier>(
     config.admin = canonical_admin;
     config.save(&mut deps.storage)?;
 
-    let answer = to_binary(&HandleAnswer::ChangeAdmin {
+    let answer = to_json_binary(&HandleAnswer::ChangeAdmin {
         status: ResponseStatus::Success,
     })?;
 
@@ -124,7 +124,7 @@ pub fn try_change_status<S: Storage, A: Api, Q: Querier>(
     config.status = status as u8;
     config.save(&mut deps.storage)?;
 
-    let answer = to_binary(&HandleAnswer::ChangeStatus {
+    let answer = to_json_binary(&HandleAnswer::ChangeStatus {
         status: ResponseStatus::Success,
     })?;
 
@@ -228,9 +228,9 @@ pub fn try_deposit<S: Storage, A: Api, Q: Querier>(
     let msg = CosmosMsg::Staking(delegate_msg);
     messages.push(msg);
 
-    let answer = to_binary(&HandleAnswer::Deposit {
-        usd_deposit: Uint128(user_info.usd_deposit),
-        scrt_deposit: Uint128(user_info.scrt_deposit),
+    let answer = to_json_binary(&HandleAnswer::Deposit {
+        usd_deposit: Uint128::from(user_info.usd_deposit),
+        scrt_deposit: Uint128::from(user_info.scrt_deposit),
         tier: new_tier,
         status: ResponseStatus::Success,
     })?;
@@ -276,7 +276,7 @@ pub fn try_withdraw<S: Storage, A: Api, Q: Querier>(
     let withdraw_msg = StakingMsg::Undelegate { validator, amount };
     let msg = CosmosMsg::Staking(withdraw_msg);
 
-    let answer = to_binary(&HandleAnswer::Withdraw {
+    let answer = to_json_binary(&HandleAnswer::Withdraw {
         status: ResponseStatus::Success,
     })?;
 
@@ -339,7 +339,7 @@ pub fn try_claim<S: Storage, A: Api, Q: Querier>(
     };
 
     let msg = CosmosMsg::Bank(send_msg);
-    let answer = to_binary(&HandleAnswer::Claim {
+    let answer = to_json_binary(&HandleAnswer::Claim {
         amount: claim_amount.into(),
         status: ResponseStatus::Success,
     })?;
@@ -378,8 +378,8 @@ pub fn try_withdraw_rewards<S: Storage, A: Api, Q: Querier>(
     };
 
     let msg = CosmosMsg::Staking(withdraw_msg);
-    let answer = to_binary(&HandleAnswer::WithdrawRewards {
-        amount: Uint128(can_withdraw),
+    let answer = to_json_binary(&HandleAnswer::WithdrawRewards {
+        amount: Uint128::from(can_withdraw),
         status: ResponseStatus::Success,
     })?;
 
@@ -410,8 +410,8 @@ pub fn try_redelegate<S: Storage, A: Api, Q: Querier>(
         config.validator = validator_address;
         config.save(&mut deps.storage)?;
 
-        let answer = to_binary(&HandleAnswer::Redelegate {
-            amount: Uint128(0),
+        let answer = to_json_binary(&HandleAnswer::Redelegate {
+            amount: Uint128::from(0),
             status: ResponseStatus::Success,
         })?;
 
@@ -455,8 +455,8 @@ pub fn try_redelegate<S: Storage, A: Api, Q: Querier>(
     };
 
     messages.push(CosmosMsg::Staking(redelegate_msg));
-    let answer = to_binary(&HandleAnswer::Redelegate {
-        amount: Uint128(can_redelegate),
+    let answer = to_json_binary(&HandleAnswer::Redelegate {
+        amount: Uint128::from(can_redelegate),
         status: ResponseStatus::Success,
     })?;
 
@@ -471,7 +471,7 @@ pub fn query_config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> Q
     let config = Config::load(&deps.storage)?;
     let answer = config.to_answer(&deps.api)?;
 
-    to_binary(&answer)
+    to_json_binary(&answer)
 }
 
 pub fn query_user_info<S: Storage, A: Api, Q: Querier>(
@@ -491,7 +491,7 @@ pub fn query_user_info<S: Storage, A: Api, Q: Querier>(
         });
 
     let answer = user_info.to_answer();
-    to_binary(&answer)
+    to_json_binary(&answer)
 }
 
 pub fn query_withdrawals<S: Storage, A: Api, Q: Querier>(
@@ -515,7 +515,7 @@ pub fn query_withdrawals<S: Storage, A: Api, Q: Querier>(
         withdrawals: serialized_withdrawals,
     };
 
-    to_binary(&answer)
+    to_json_binary(&answer)
 }
 
 #[cfg(test)]
@@ -523,7 +523,7 @@ mod tests {
     use super::*;
     use crate::{msg::SerializedWithdrawals, state::UserInfo};
     use cosmwasm_std::{
-        from_binary,
+        from_json,
         testing::{mock_dependencies, mock_env, MockApi, MockQuerier},
         FullDelegation, MemoryStorage, StdResult,
     };
@@ -583,7 +583,7 @@ mod tests {
         let msg = QueryMsg::Config {};
         let response = query(deps, msg).unwrap();
 
-        match from_binary(&response).unwrap() {
+        match from_json(&response).unwrap() {
             QueryAnswer::Config {
                 admin,
                 validator,
@@ -609,7 +609,7 @@ mod tests {
         let msg = QueryMsg::UserInfo { address };
         let response = query(deps, msg).unwrap();
 
-        match from_binary(&response).unwrap() {
+        match from_json(&response).unwrap() {
             QueryAnswer::UserInfo {
                 tier,
                 timestamp,
@@ -636,7 +636,7 @@ mod tests {
         };
         let response = query(deps, msg).unwrap();
 
-        match from_binary(&response).unwrap() {
+        match from_json(&response).unwrap() {
             QueryAnswer::Withdrawals {
                 amount,
                 withdrawals,
@@ -819,7 +819,7 @@ mod tests {
         env.message.sent_funds = coins(200, USCRT);
         let response = handle(&mut deps, env.clone(), deposit_msg.clone()).unwrap();
 
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::Deposit {
                 usd_deposit,
                 scrt_deposit,
@@ -859,7 +859,7 @@ mod tests {
         env.message.sent_funds = coins(10_000, USCRT);
         let response = handle(&mut deps, env.clone(), deposit_msg.clone()).unwrap();
 
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::Deposit {
                 usd_deposit,
                 scrt_deposit,
@@ -906,7 +906,7 @@ mod tests {
         env.message.sent_funds = coins(100000, USCRT);
         let response = handle(&mut deps, env.clone(), deposit_msg.clone()).unwrap();
 
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::Deposit {
                 usd_deposit,
                 scrt_deposit,
@@ -1064,9 +1064,9 @@ mod tests {
 
         env.block.time += 21 * day;
         let response = handle(&mut deps, env.clone(), claim_msg).unwrap();
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::Claim { amount, .. } => {
-                assert_eq!(amount, Uint128(deposit))
+                assert_eq!(amount, Uint128::from(deposit))
             }
             _ => unreachable!(),
         }
@@ -1129,7 +1129,7 @@ mod tests {
         };
 
         let response = handle(&mut deps, env.clone(), claim_msg.clone()).unwrap();
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::Claim { amount, status } => {
                 assert_eq!(amount.u128(), claim_amount);
                 assert_eq!(status, ResponseStatus::Success);
@@ -1139,7 +1139,7 @@ mod tests {
 
         env.block.time = 1000;
         let response = handle(&mut deps, env, claim_msg).unwrap();
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::Claim { amount, status } => {
                 assert_eq!(amount.u128(), total_amount - claim_amount);
                 assert_eq!(status, ResponseStatus::Success);

@@ -13,9 +13,9 @@ use crate::{
     utils::{self, assert_admin, assert_contract_active, assert_ido_admin},
 };
 use cosmwasm_std::{
-    coins, to_binary, Addr, Addr, Api, BankMsg, CosmosMsg, DepsMut, Env, Extern, HandleResponse,
-    HandleResult, InitResponse, InitResult, MessageInfo, Querier, QueryResult, StdError, Storage,
-    Uint128,
+    coins, to_json_binary, Addr, Api, BankMsg, CosmosMsg, Deps, DepsMut, Env, Extern,
+    HandleResponse, HandleResult, InitResponse, InitResult, MessageInfo, Querier, QueryResult,
+    StdError, Storage, Uint128,
 };
 use secret_toolkit_snip20::{transfer_from_msg, transfer_msg};
 use secret_toolkit_utils::{pad_handle_result, pad_query_result};
@@ -135,7 +135,7 @@ fn change_admin(deps: DepsMut, env: Env, info: MessageInfo, admin: Addr) -> Hand
 
     config.save(&mut deps.storage)?;
 
-    let answer = to_binary(&HandleAnswer::ChangeAdmin {
+    let answer = to_json_binary(&HandleAnswer::ChangeAdmin {
         status: ResponseStatus::Success,
     })?;
 
@@ -152,7 +152,7 @@ fn change_status(deps: DepsMut, env: Env, status: ContractStatus) -> HandleResul
     config.status = status as u8;
     config.save(&mut deps.storage)?;
 
-    let answer = to_binary(&HandleAnswer::ChangeStatus {
+    let answer = to_json_binary(&HandleAnswer::ChangeStatus {
         status: ResponseStatus::Success,
     })?;
 
@@ -232,7 +232,7 @@ fn start_ido(deps: DepsMut, env: Env, mut ido: Ido, whitelist: Whitelist) -> Han
     let transfer_msg = transfer_from_msg(
         env.message.sender,
         env.contract.address,
-        Uint128(ido.total_tokens_amount),
+        Uint128::from(ido.total_tokens_amount),
         None,
         None,
         BLOCK_SIZE,
@@ -240,7 +240,7 @@ fn start_ido(deps: DepsMut, env: Env, mut ido: Ido, whitelist: Whitelist) -> Han
         token_address,
     )?;
 
-    let answer = to_binary(&HandleAnswer::StartIdo {
+    let answer = to_json_binary(&HandleAnswer::StartIdo {
         ido_id,
         status: ResponseStatus::Success,
     })?;
@@ -307,7 +307,7 @@ fn buy_tokens(
     let lock_period = config.lock_period(tier);
 
     let unlock_time = ido.end_time.checked_add(lock_period).unwrap();
-    let tokens_amount = Uint128(amount);
+    let tokens_amount = Uint128::from(amount);
     let purchase = Purchase {
         timestamp: env.block.time,
         tokens_amount: tokens_amount.u128(),
@@ -356,9 +356,9 @@ fn buy_tokens(
 
     ido.save(&mut deps.storage)?;
 
-    let answer = to_binary(&HandleAnswer::BuyTokens {
+    let answer = to_json_binary(&HandleAnswer::BuyTokens {
         unlock_time,
-        amount: Uint128(amount),
+        amount: Uint128::from(amount),
         status: ResponseStatus::Success,
     })?;
 
@@ -370,7 +370,7 @@ fn buy_tokens(
         let transfer_msg = transfer_from_msg(
             sender,
             env.contract.address,
-            Uint128(payment),
+            Uint128::from(payment),
             None,
             None,
             BLOCK_SIZE,
@@ -423,7 +423,7 @@ fn recv_tokens(
             let token_contract = deps.api.human_address(&token_contract_canonical)?;
             transfer_msg(
                 env.message.sender,
-                Uint128(user_ido_info.total_payment),
+                Uint128::from(user_ido_info.total_payment),
                 None,
                 None,
                 BLOCK_SIZE,
@@ -447,8 +447,8 @@ fn recv_tokens(
 
         let active_ido_list = state::active_ido_list(&canonical_sender);
         active_ido_list.remove(&mut deps.storage, &ido_id)?;
-        let answer = to_binary(&HandleAnswer::RecvTokens {
-            amount: Uint128(user_info.total_payment),
+        let answer = to_json_binary(&HandleAnswer::RecvTokens {
+            amount: Uint128::from(user_info.total_payment),
             status: ResponseStatus::Success,
             ido_success: false,
         })?;
@@ -508,8 +508,8 @@ fn recv_tokens(
         return Err(StdError::generic_err("Nothing to receive"));
     }
 
-    let answer = to_binary(&HandleAnswer::RecvTokens {
-        amount: Uint128(recv_amount),
+    let answer = to_json_binary(&HandleAnswer::RecvTokens {
+        amount: Uint128::from(recv_amount),
         status: ResponseStatus::Success,
         ido_success: true,
     })?;
@@ -536,7 +536,7 @@ fn recv_tokens(
 
     let transfer_msg = transfer_msg(
         env.message.sender,
-        Uint128(recv_amount),
+        Uint128::from(recv_amount),
         None,
         None,
         BLOCK_SIZE,
@@ -594,7 +594,7 @@ fn withdraw(deps: DepsMut, env: Env, ido_id: u32) -> HandleResult {
         msgs.push(transfer_tokens);
     }
     //withdraw payment tokens.
-    let payment_amount = Uint128(ido.sold_amount.checked_div(ido.price).unwrap());
+    let payment_amount = Uint128::from(ido.sold_amount.checked_div(ido.price).unwrap());
     if ido.sold_amount >= ido.soft_cap {
         let payment_transfer_msg = if ido.is_native_payment() {
             CosmosMsg::Bank(BankMsg::Send {
@@ -618,7 +618,7 @@ fn withdraw(deps: DepsMut, env: Env, ido_id: u32) -> HandleResult {
         msgs.push(payment_transfer_msg)
     }
 
-    let answer = to_binary(&HandleAnswer::Withdraw {
+    let answer = to_json_binary(&HandleAnswer::Withdraw {
         ido_amount: remaining_tokens,
         payment_amount: payment_amount,
         status: ResponseStatus::Success,
@@ -641,7 +641,7 @@ fn whitelist_add(deps: DepsMut, env: Env, addresses: Vec<Addr>, ido_id: u32) -> 
         whitelist.insert(&mut deps.storage, &addr_canonicalize, &true)?;
     }
 
-    let answer = to_binary(&HandleAnswer::WhitelistAdd {
+    let answer = to_json_binary(&HandleAnswer::WhitelistAdd {
         status: ResponseStatus::Success,
     })?;
 
@@ -662,7 +662,7 @@ fn whitelist_remove(deps: DepsMut, env: Env, addresses: Vec<Addr>, ido_id: u32) 
         whitelist.insert(&mut deps.storage, &addr_canonicalize, &false)?;
     }
 
-    let answer = to_binary(&HandleAnswer::WhitelistRemove {
+    let answer = to_json_binary(&HandleAnswer::WhitelistRemove {
         status: ResponseStatus::Success,
     })?;
 
@@ -672,12 +672,12 @@ fn whitelist_remove(deps: DepsMut, env: Env, addresses: Vec<Addr>, ido_id: u32) 
     })
 }
 
-pub fn query(deps: &Extern<S, A, Q>, msg: QueryMsg) -> QueryResult {
+pub fn query(deps: Deps, msg: QueryMsg) -> QueryResult {
     let response = do_query(deps, msg);
     pad_query_result(response, BLOCK_SIZE)
 }
 
-fn do_query(deps: &Extern<S, A, Q>, msg: QueryMsg) -> QueryResult {
+fn do_query(deps: Deps, msg: QueryMsg) -> QueryResult {
     let response = match msg {
         QueryMsg::Config {} => {
             let config = Config::load(&deps.storage)?;
@@ -771,7 +771,7 @@ fn do_query(deps: &Extern<S, A, Q>, msg: QueryMsg) -> QueryResult {
         }
     };
 
-    to_binary(&response)
+    to_json_binary(&response)
 }
 
 #[cfg(test)]
@@ -779,7 +779,7 @@ mod tests {
     use super::*;
     use crate::{state::UserInfo, tier::manual};
     use cosmwasm_std::{
-        from_binary,
+        from_json,
         testing::{
             mock_dependencies, mock_dependencies_with_balance, mock_dependencies_with_balances,
             mock_env, mock_info, MockApi, MockQuerier, MockStorage,
@@ -811,9 +811,9 @@ mod tests {
         Ok(deps)
     }
 
-    fn initialize_with_default() -> Extern<MockStorage, MockApi, MockQuerier> {
+    fn initialize_with_default() -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
         let msg = get_init_msg();
-        initialize_with(msg).unwrap()
+        initialize_with(msg).unwrap_or_default()
     }
 
     fn start_ido_msg() -> ExecuteMsg {
@@ -834,30 +834,30 @@ mod tests {
         let mut whitelist = Vec::new();
         for i in 0..rng.gen_range(20..100) {
             let address = format!("address_{}", i);
-            whitelist.push(Addr(address));
+            whitelist.push(Addr::unchecked(address));
         }
 
         let mut tokens_per_tier = Vec::new();
         let mut remaining_tokens = total_amount;
         for _ in 0..3 {
             let tokens_amount = rng.gen_range(0..=remaining_tokens);
-            tokens_per_tier.push(Uint128(tokens_amount));
+            tokens_per_tier.push(Uint128::from(tokens_amount));
             remaining_tokens -= tokens_amount;
         }
-        tokens_per_tier.push(Uint128(remaining_tokens));
+        tokens_per_tier.push(Uint128::from(remaining_tokens));
 
         ExecuteMsg::StartIdo {
             start_time,
             end_time,
-            token_contract: Addr(token_contract),
+            token_contract: Addr::unchecked(token_contract),
             token_contract_hash,
             payment: PaymentMethod::Token {
                 contract: Addr::from("token"),
                 code_hash: String::from("token_hash"),
             },
-            price: Uint128(price),
-            total_amount: Uint128(total_amount),
-            soft_cap: Uint128(total_amount),
+            price: Uint128::from(price),
+            total_amount: Uint128::from(total_amount),
+            soft_cap: Uint128::from(total_amount),
             whitelist: Whitelist::Empty {
                 with: Some(whitelist),
             },
@@ -908,7 +908,7 @@ mod tests {
         let admin = mock_info("admin", &[]);
         let env = mock_env();
 
-        let response = instantiate(deps, env, info, msg);
+        let response = instantiate(deps, env, admin, msg);
         let error = extract_error(response);
 
         assert!(error.contains("Lock periods array must have 4 items"));
@@ -926,7 +926,6 @@ mod tests {
             padding: None,
         };
 
-        let info = mock_info(&user, &[]);
         let env = mock_env();
         let response = execute(deps, env, info, change_admin_msg.clone());
         let error = extract_error(response);
@@ -1070,7 +1069,7 @@ mod tests {
 
         let response = execute(deps, env, info, start_ido_msg).unwrap();
         let data = response.data.unwrap();
-        let ido_id = match from_binary(&data).unwrap() {
+        let ido_id = match from_json(&data).unwrap() {
             HandleAnswer::StartIdo { ido_id, .. } => ido_id,
             _ => unreachable!(),
         };
@@ -1122,7 +1121,7 @@ mod tests {
 
         let response = execute(deps, env, info, start_ido_msg).unwrap();
         let data = response.data.unwrap();
-        let ido_id = match from_binary(&data).unwrap() {
+        let ido_id = match from_json(&data).unwrap() {
             HandleAnswer::StartIdo { ido_id, .. } => ido_id,
             _ => unreachable!(),
         };
@@ -1145,7 +1144,7 @@ mod tests {
     #[test]
     fn start_ido() {
         let mut deps = initialize_with_default();
-
+        let ido_admin = Addr::unchecked("admin");
         let info = mock_info("admin", &[]);
         let canonical_ido_admin = deps.api.addr_canonicalize(&ido_admin).unwrap();
         let env = mock_env();
@@ -1158,7 +1157,7 @@ mod tests {
         let HandleResponse { messages, data, .. } =
             execute(deps, env.clone(), info, msg.clone()).unwrap();
 
-        match from_binary(&data.unwrap()).unwrap() {
+        match from_json(&data.unwrap()).unwrap() {
             HandleAnswer::StartIdo { ido_id, status, .. } => {
                 assert_eq!(ido_id, 0);
                 assert_eq!(status, ResponseStatus::Success);
@@ -1269,7 +1268,7 @@ mod tests {
             let new_tokens_per_tier = new_tokens_per_tier
                 .clone()
                 .into_iter()
-                .map(Uint128)
+                .map(Uint128::from)
                 .collect::<Vec<_>>();
 
             tokens_per_tier.clear();
@@ -1300,7 +1299,7 @@ mod tests {
         let tokens_per_tier = change_tokens_per_tier(&mut msg, None);
         let response = execute(deps, env, info, msg).unwrap();
         let data = response.data.unwrap();
-        let ido_id = match from_binary(&data).unwrap() {
+        let ido_id = match from_json(&data).unwrap() {
             HandleAnswer::StartIdo { ido_id, .. } => ido_id,
             _ => unreachable!(),
         };
@@ -1460,7 +1459,7 @@ mod tests {
     fn buy_tokens_blacklisted() {
         let mut deps = initialize_with_default();
         let info = mock_info("user", &[]);
-        let canonical_user = deps.api.addr_canonicalize(&user).unwrap();
+        let canonical_user = deps.api.addr_canonicalize(&info.sender).unwrap();
 
         let mut env = mock_env();
         env.block.time = 5;
@@ -1488,7 +1487,7 @@ mod tests {
             padding: None,
         };
 
-        assert!(!utils::in_whitelist(&deps, &user, ido_id).unwrap());
+        assert!(!utils::in_whitelist(&deps, &info.sender, ido_id).unwrap());
 
         let response = execute(deps, env.clone(), info, buy_tokens_msg.clone());
         let error = extract_error(response);
@@ -1502,7 +1501,7 @@ mod tests {
             .insert(&mut deps.storage, &canonical_user, &false)
             .unwrap();
 
-        assert!(!utils::in_whitelist(&deps, &user, ido_id).unwrap());
+        assert!(!utils::in_whitelist(&deps, &info.sender, ido_id).unwrap());
 
         let response = execute(deps, env, info, buy_tokens_msg);
         let error = extract_error(response);
@@ -1514,7 +1513,7 @@ mod tests {
         let mut deps = initialize_with(init_msg).unwrap();
 
         let info = mock_info("admin", &[]);
-        let canonical_ido_admin = deps.api.addr_canonicalize(&ido_admin).unwrap();
+        let canonical_ido_admin = deps.api.addr_canonicalize(&info.sender).unwrap();
 
         let info = mock_info("user", &[]);
 
@@ -1587,10 +1586,10 @@ mod tests {
         let lock_periods = init_msg.lock_periods;
 
         let info = mock_info("admin", &[]);
-        let canonical_ido_admin = deps.api.addr_canonicalize(&ido_admin).unwrap();
+        let canonical_ido_admin = deps.api.addr_canonicalize(&info.sender).unwrap();
 
         let info = mock_info("user", &[]);
-        let canonical_user = deps.api.addr_canonicalize(&user).unwrap();
+        let canonical_user = deps.api.addr_canonicalize(&info.sender).unwrap();
 
         let mut env = mock_env();
         env.block.time = 5;
@@ -1660,7 +1659,7 @@ mod tests {
             let response = execute(deps, env.clone(), info, buy_tokens_msg.clone()).unwrap();
             let data = response.data.unwrap();
 
-            match from_binary(&data).unwrap() {
+            match from_json(&data).unwrap() {
                 HandleAnswer::BuyTokens {
                     amount,
                     unlock_time,
@@ -1678,7 +1677,7 @@ mod tests {
             assert_eq!(
                 messages[0],
                 transfer_from_msg(
-                    user.clone(),
+                    info.sender,
                     env.contract.address.clone(),
                     Uint128::from(max_tokens_amount / ido.price),
                     None,
@@ -1821,7 +1820,7 @@ mod tests {
 
         let response = execute(deps, env, info, remove_whitelist_msg).unwrap();
 
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::WhitelistRemove { status } => {
                 assert_eq!(status, ResponseStatus::Success);
             }
@@ -1961,13 +1960,13 @@ mod tests {
             .sum();
 
         let response = execute(deps, env.clone(), info, recv_tokens_msg.clone()).unwrap();
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::RecvTokens {
                 amount,
                 status,
                 ido_success,
             } => {
-                assert_eq!(amount, Uint128(recv_amount));
+                assert_eq!(amount, Uint128::from(recv_amount));
                 assert_eq!(status, ResponseStatus::Success);
                 assert_eq!(ido_success, true);
             }
@@ -1978,7 +1977,7 @@ mod tests {
         let token_contract = deps.api.human_address(&ido.token_contract).unwrap();
         let expected_message = transfer_msg(
             user.clone(),
-            Uint128(recv_amount),
+            Uint128::from(recv_amount),
             None,
             None,
             BLOCK_SIZE,
@@ -2025,13 +2024,13 @@ mod tests {
         let response = execute(deps, env, info, recv_tokens_msg).unwrap();
         let recv_amount = total_tokens_amount - recv_amount;
 
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::RecvTokens {
                 amount,
                 status,
                 ido_success,
             } => {
-                assert_eq!(amount, Uint128(recv_amount));
+                assert_eq!(amount, Uint128::from(recv_amount));
                 assert_eq!(status, ResponseStatus::Success);
                 assert_eq!(ido_success, true);
             }
@@ -2040,7 +2039,7 @@ mod tests {
 
         let expected_message = transfer_msg(
             user,
-            Uint128(recv_amount),
+            Uint128::from(recv_amount),
             None,
             None,
             BLOCK_SIZE,
@@ -2107,13 +2106,13 @@ mod tests {
             .sum();
 
         let response = execute(deps, env, info, recv_tokens_msg).unwrap();
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::RecvTokens {
                 amount,
                 status,
                 ido_success,
             } => {
-                assert_eq!(amount, Uint128(recv_amount));
+                assert_eq!(amount, Uint128::from(recv_amount));
                 assert_eq!(status, ResponseStatus::Success);
                 assert_eq!(ido_success, true);
             }
@@ -2124,7 +2123,7 @@ mod tests {
         let token_contract = deps.api.human_address(&ido.token_contract).unwrap();
         let expected_message = transfer_msg(
             user,
-            Uint128(recv_amount),
+            Uint128::from(recv_amount),
             None,
             None,
             BLOCK_SIZE,
@@ -2203,14 +2202,14 @@ mod tests {
 
         env.block.time = 1000;
         let response = execute(deps, env.clone(), info, withdraw_msg.clone()).unwrap();
-        match from_binary(&response.data.unwrap()).unwrap() {
+        match from_json(&response.data.unwrap()).unwrap() {
             HandleAnswer::Withdraw {
                 ido_amount,
                 payment_amount,
                 status,
             } => {
-                assert_eq!(ido_amount, Uint128(withdraw_amount));
-                assert_eq!(payment_amount, Uint128(withdraw_payment_amount));
+                assert_eq!(ido_amount, Uint128::from(withdraw_amount));
+                assert_eq!(payment_amount, Uint128::from(withdraw_payment_amount));
                 assert_eq!(status, ResponseStatus::Success);
             }
             _ => unreachable!(),
@@ -2218,7 +2217,7 @@ mod tests {
 
         let expected_message = transfer_msg(
             ido_admin,
-            Uint128(withdraw_amount),
+            Uint128::from(withdraw_amount),
             None,
             None,
             BLOCK_SIZE,
